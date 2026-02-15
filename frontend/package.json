@@ -11,6 +11,9 @@
     "preview": "vite preview",
     "start": "vite preview"
   },
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "dependencies": {
     "@pixi/react": "^8.0.5",
     "@vitejs/plugin-react-swc": "^4.2.2",

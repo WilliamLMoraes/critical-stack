@@ -25,17 +25,17 @@ interface Token {
 }
 
 const BACKGROUND_IMAGES = [
-  "/src/assets/images/grid-backgrounds/antiguamente-arena-colosseum-ruins-map-fantasy-tabletop-rpg-exterior-battlemap-ttrpg-adventures-encounges-entra-nas-344021629.webp",
-  "/src/assets/images/grid-backgrounds/images (1).jpeg",
-  "/src/assets/images/grid-backgrounds/images (2).jpeg",
-  "/src/assets/images/grid-backgrounds/czx8cb6zah831.png",
-  "/src/assets/images/grid-backgrounds/7c0abc4207dfa3a98a9e478ff05ef88d.jpg",
-  "/src/assets/images/grid-backgrounds/599d66420ce710cdbfa83e3db238c7e5.jpg",
-  "/src/assets/images/grid-backgrounds/6515c521a85c18ab7ea65fcf29ce3785.jpg",
+  "/images/grid-backgrounds/antiguamente-arena-colosseum-ruins-map-fantasy-tabletop-rpg-exterior-battlemap-ttrpg-adventures-encounges-entra-nas-344021629.webp",
+  "/images/grid-backgrounds/images (1).jpeg",
+  "/images/grid-backgrounds/images (2).jpeg",
+  "/images/grid-backgrounds/czx8cb6zah831.png",
+  "/images/grid-backgrounds/7c0abc4207dfa3a98a9e478ff05ef88d.jpg",
+  "/images/grid-backgrounds/599d66420ce710cdbfa83e3db238c7e5.jpg",
+  "/images/grid-backgrounds/6515c521a85c18ab7ea65fcf29ce3785.jpg",
 ];
 
 const TOKEN_IMAGES = [
-  "/src/assets/images/tokens/Images_H0SqZbnlzsnHLn7lsFof_resized_1748359002114l_w_800x800.webp",
+  "/images/tokens/Images_H0SqZbnlzsnHLn7lsFof_resized_1748359002114l_w_800x800.webp",
 ];
 
 export default function GridMapPage() {
