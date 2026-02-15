@@ -1,0 +1,105 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  min-width: 300px;
+  max-width: 90vw;
+  max-height: 90vh;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.draggable {
+  user-select: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--size-lg);
+  font-weight: 600;
+  color: var(--color-gray-900);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: var(--size-2xl);
+  color: var(--color-gray-500);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: var(--color-gray-200);
+  color: var(--color-gray-700);
+}
+
+.closeButton:active {
+  transform: scale(0.95);
+}
+
+.content {
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Animação de entrada */
+.modal {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Quando está sendo arrastada */
+.draggable {
+  transition: none;
+}
+
+.draggable .header {
+  background: var(--color-gray-100);
+}
+
+
