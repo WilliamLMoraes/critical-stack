@@ -2,8 +2,10 @@ import Styles from "./style.module.css";
 import logoIcon from "../../../assets/svgs/logos/logo-1.svg";
 import Button from "../../components/button";
 import GameCard from "../../components/game-card";
+import { useNavigate } from "react-router";
 
 export default function HomePage() {
+  const navigate = useNavigate();
   return (
     <div className="container">
       <div className={Styles.main__content}>
@@ -32,7 +34,7 @@ export default function HomePage() {
                 players="1-4 jogadores"
                 duration="40-60 horas"
                 variant="featured"
-                onPlay={() => console.log('Iniciando Dragon Quest XI')}
+                onPlay={() => navigate('/map')}
                 onEdit={() => console.log('Editando jogo')}
                 onDelete={() => console.log('Excluindo jogo')}
               />
