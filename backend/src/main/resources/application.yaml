@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: CriticalStack
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/critical_stack?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+server:
+  error:
+    include-message: always
+
+logging:
+  level:
+    org.hibernate.orm.jdbc.bind: trace
+
+jwt:
+  public:
+    key: classpath:authz.pub
+  private:
+    key: classpath:authz.pem
+
+

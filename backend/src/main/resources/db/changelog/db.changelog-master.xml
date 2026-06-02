@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.30.xsd">
+
+    <include file="users/users-create-table.sql" relativeToChangelogFile="true"/>
+    <include file="campaigns/campaigns-create-table.sql" relativeToChangelogFile="true"/>
+    <include file="campaigns/campaigns-altertable-01.sql" relativeToChangelogFile="true"/>
+    <include file="campaigns_folders/campaigns_folders-create-table.sql" relativeToChangelogFile="true"/>
+    <include file="campaigns_folders/campaigns_folders-altertable-01.sql" relativeToChangelogFile="true"/>
+    <include file="campaigns_grid/campaigns_grid-create-table.sql" relativeToChangelogFile="true"/>
+    <include file="campaigns_grid/campaigns_grid-altertable-01.sql" relativeToChangelogFile="true"/>
+    <include file="tokens/tokens-create-table.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

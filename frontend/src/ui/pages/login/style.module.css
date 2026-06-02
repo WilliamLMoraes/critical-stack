@@ -1,0 +1,155 @@
+
+.loginContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.loginContainer div {
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.background {
+  position: relative;
+  max-width: 50%;
+  min-width: 50%;
+  width: 100%;
+  display: flex;
+  position: relative;
+  background-image: url("/images/background-login.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 2rem;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  margin: auto;
+  max-width: 300px;
+  width: 100%;
+}
+
+.formContainer h2 {
+  margin-bottom: 4rem;
+  font-size: 2.5rem;
+  font-weight: var(--font-regular);
+  color: var(--color-grey);
+}
+
+.formContainer a {
+  color: var(--color-black);
+
+  &:hover {
+    color: var(--color-primary-dark);
+  }
+
+  &:active {
+    color: var(--color-primary-light);
+  }
+}
+
+.formContainer p {
+  margin-top: 0.5rem;
+  text-align: start;
+  color: var(--color-grey);
+}
+
+.formContainer buttom {
+  width: 100%;
+}
+
+.formContainer input {
+  width: 100%;
+}
+
+.formContainer h1 {
+  display: none;
+  font-size: 2.5rem;
+}
+
+.logoContainer {
+  position: absolute;
+  max-height: 40px;
+  bottom: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.passwordContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordContainer input {
+  padding-right: 2.5rem;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  transition: color 0.2s ease;
+}
+
+.passwordToggle:hover {
+  color: var(--color-primary-dark);
+}
+
+.passwordToggle:focus {
+  outline: none;
+  color: var(--color-primary);
+}
+
+@media (max-width: 900px) {
+  .loginContainer .background {
+    display: none;
+  }
+
+  .formContainer p {
+    margin-top: 0.5rem;
+    text-align: center;
+    color: var(--color-grey);
+  }
+
+  .formContainer h1 {
+    display: block;
+  }
+
+  .formContainer h2 {
+    margin-top: 2rem;
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 330px) {
+  .formContainer h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-height: 850px) {
+  .loginContainer {
+    height: 90vh;
+    margin-top: 5vh;
+  }
+}

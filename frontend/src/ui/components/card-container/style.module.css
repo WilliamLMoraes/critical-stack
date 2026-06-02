@@ -1,0 +1,32 @@
+.cardContainer {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  max-width: 1022px;
+  border-radius: 2.5rem;
+  box-shadow: var(--shadow-xl);
+}
+
+.default {
+  max-height: 778px;
+  height: 70vh;
+}
+
+.custom {
+  height: 100%;
+  margin-bottom: 2rem;
+}
+
+.cardContainer img {
+  object-fit: fill;
+  width: 100vw;
+  border-radius: 5%;
+}
+
+@media (max-width: 900px) {
+  .cardContainer {
+    justify-content: center;
+    max-width: 1022px;
+    width: 100%;
+  }
+}

@@ -1,0 +1,172 @@
+.registerContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.registerContainer > div {
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.background {
+  position: relative;
+  max-width: 50%;
+  min-width: 40%;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background-image: url("/images/right-background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 2rem;
+}
+
+.logoContainer {
+  position: absolute;
+  max-height: 40px;
+  bottom: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.inputContainer {
+  display: flex;
+  min-width: 45%;
+  gap: var(--gap);
+}
+
+input[type="date"] {
+  color: var(--color-black);
+}
+
+.formContainer h1 {
+  margin-bottom: 3rem;
+  font-size: 2.5rem;
+  font-weight: var(--font-regular);
+  color: var(--color-grey);
+}
+
+.formContainer a {
+  color: var(--color-black);
+
+  &:hover {
+    color: var(--color-primary-dark);
+  }
+
+  &:active {
+    color: var(--color-primary-light);
+  }
+}
+
+.formContainer p {
+  margin-top: 0.5rem;
+  text-align: start;
+  color: var(--color-grey);
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  margin: auto 9%;
+  max-width: 370px;
+  width: 100vw;
+}
+
+.passwordContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.passwordContainer input {
+  padding-right: 2.5rem;
+  width: 100%;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  transition: color 0.2s ease;
+}
+
+.passwordToggle:hover {
+  color: var(--color-primary-dark);
+}
+
+.passwordToggle:focus {
+  outline: none;
+  color: var(--color-primary);
+}
+
+.passwordToggle2 {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  transition: color 0.2s ease;
+}
+
+.passwordToggle2:hover {
+  color: var(--color-primary-dark);
+}
+
+.passwordToggle2:focus {
+  outline: none;
+  color: var(--color-primary);
+}
+
+@media (max-width: 900px) {
+  .background {
+    display: none;
+  }
+
+  .logo {
+    height: auto;
+    bottom: 15%;
+    right: 25%;
+  }
+  .inputContainer {
+    flex-wrap: wrap;
+  }
+
+  .formContainer p {
+    margin-top: 0.5rem;
+    text-align: center;
+    color: var(--color-grey);
+  }
+}
+
+@media (max-height: 850px) {
+  .registerContainer {
+    height: 90vh;
+    margin-top: 5vh;
+  }
+}

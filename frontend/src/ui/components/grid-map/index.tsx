@@ -251,10 +251,13 @@ function drawMap(
 
   g.clear();
 
+  const backgroundColor = config.BACKGROUND_COLOR ?? "0xe9ecef";
+  const gridColor = config.GRID_COLOR ?? "0xadb5bd";
+
   if (!config.TRANSPARENT_BACKGROUND || bgTexture === null) {
     for (let y = 0; y < config.GRID_CELLS_HEIGHT; y++) {
       for (let x = 0; x < config.GRID_CELLS_WIDTH; x++) {
-        g.setFillStyle({ color: config.BACKGROUND_COLOR });
+        g.setFillStyle({ color: backgroundColor });
         g.rect(
           x * config.CELL_SIZE,
           y * config.CELL_SIZE,
@@ -268,7 +271,7 @@ function drawMap(
 
   if (!config.SHOW_GRID) return;
 
-  g.setStrokeStyle({ width: 1, color: config.GRID_COLOR });
+  g.setStrokeStyle({ width: 1, color: gridColor });
 
   for (let x = 0; x <= config.GRID_CELLS_WIDTH; x++) {
     g.moveTo(x * config.CELL_SIZE, 0);

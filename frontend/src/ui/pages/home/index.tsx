@@ -1,18 +1,14 @@
 import Styles from "./style.module.css";
-import logoIcon from "../../../assets/svgs/logos/logo-1.svg";
 import Button from "../../components/button";
 import GameCard from "../../components/game-card";
 import { useNavigate } from "react-router";
+import Container from "../../components/container";
 
 export default function HomePage() {
   const navigate = useNavigate();
   return (
-    <div className="container">
+    <Container>
       <div className={Styles.main__content}>
-        <header className={Styles.header}>
-          <img src={logoIcon} alt="Critical Stack Logo" width={90} />
-        </header>
-
         <main>
           <div className={Styles.page}>
             <section>
@@ -50,6 +46,6 @@ export default function HomePage() {
           </div>
         </footer>
       </div>
-    </div>
+    </Container>
   );
 }
