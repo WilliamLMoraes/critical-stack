@@ -10,6 +10,7 @@ public class CampaignsMapper {
     public static CampaignsResponse toResponse(CampaignDomain response) {
 
         return CampaignsResponse.builder()
+                .id(response.getId())
                 .description(response.getDescription())
                 .name(response.getName())
                 .enabled(response.getEnabled())

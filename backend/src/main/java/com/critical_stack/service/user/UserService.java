@@ -14,6 +14,7 @@ import com.critical_stack.validator.RegisterUserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.critical_stack.mapper.user.AuthUserMapper.toResponse;
 import static com.critical_stack.mapper.user.CreateUserMapper.*;
@@ -30,6 +31,7 @@ public class UserService {
     private final JWTUserService authenticatedUserService;
 
 
+    @Transactional
     public void register(RegisterUserRequest request) {
 
         registerUserValidator.validate(request);

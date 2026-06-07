@@ -7,9 +7,14 @@ import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CampaignRepository extends JpaRepository<CampaignDomain, Long> {
-    List<CampaignDomain> findAllByUserCreator(UserDomain userCreator);
+    List<CampaignDomain> findAllByUserCreatorAndEnabled(UserDomain userCreator, Boolean enabled);
 
     boolean existsByName(String name);
+
+    boolean existsByNameAndIdNot(String name, Long id);
+
+    Optional<CampaignDomain> findByIdAndEnabled(Long id, Boolean enabled);
 }

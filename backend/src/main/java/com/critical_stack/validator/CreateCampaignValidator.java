@@ -1,7 +1,7 @@
 package com.critical_stack.validator;
 
 import com.critical_stack.dto.campaign.request.CreateCampaignRequest;
-import com.critical_stack.exception.UserEmailAlreadyExistsException;
+import com.critical_stack.exception.CampaignNameAlreadyExistsException;
 import com.critical_stack.repository.CampaignRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ public class CreateCampaignValidator {
     public void validate(CreateCampaignRequest request) {
 
         if (campaignRepository.existsByName(request.getName())) {
-            throw new UserEmailAlreadyExistsException();
+            throw new CampaignNameAlreadyExistsException();
         }
     }
 }

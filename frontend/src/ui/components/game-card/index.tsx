@@ -50,6 +50,9 @@ Compacto
     />
 */
 
+const DEFAULT_IMAGE =
+  "https://shop-api.leaseweb.com/medias/background-default-banner-1-.png?context=bWFzdGVyfHJvb3R8ODM4OHxpbWFnZS9wbmd8YUdGbUwyZ3hOUzg0TnprNE1ETTBPRFV6T1RFNEwySmhZMnRuY205MWJtUXRaR1ZtWVhWc2RDMWlZVzV1WlhJZ0tERXBMbkJ1Wnd8MzZlN2FjYWFhYWJmYmFjM2FiNDMzZTNmNDYyOGMxZjE5ODFmNzQ2M2NkNDBiZTNjN2IyMmQ1ZWMzNzk0OWRiZg";
+
 export default function GameCard({
   title,
   description,
@@ -78,20 +81,18 @@ export default function GameCard({
   return (
     <article className={cardClasses}>
       {/* Imagem do Card */}
-      {imageUrl && (
-        <div className={styles.imageContainer}>
-          <img
-            src={imageUrl}
-            alt={imageAlt || title}
-            className={styles.image}
-            loading="lazy"
-          />
-          {variant === "featured" && (
-            <span className={styles.badge}>Em Destaque</span>
-          )}
-          {category && <span className={styles.category}>{category}</span>}
-        </div>
-      )}
+      <div className={styles.imageContainer}>
+        <img
+          src={imageUrl || DEFAULT_IMAGE}
+          alt={imageAlt || title}
+          className={styles.image}
+          loading="lazy"
+        />
+        {variant === "featured" && (
+          <span className={styles.badge}>Em Destaque</span>
+        )}
+        {category && <span className={styles.category}>{category}</span>}
+      </div>
 
       {/* Conteúdo do Card */}
       <div className={styles.content}>

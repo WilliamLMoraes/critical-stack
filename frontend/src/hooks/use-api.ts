@@ -6,6 +6,7 @@ import type AuthUserResponse from "../types/responses/auth-user";
 import type RegisterUserRequest from "../types/requests/register-user";
 import type LoggedUserResponse from "../types/responses/logged-user";
 import type RegisterCampaignRequest from "../types/requests/register-campaign";
+import type UpdateCampaignRequest from "../types/requests/update-campaign";
 import type CampaignsResponse from "../types/responses/campaigns";
 
 const api = axios.create({
@@ -77,6 +78,20 @@ export function useApi() {
     }
   }, []);
 
+  const updateCampaign = useCallback(
+    async (id: number, data: UpdateCampaignRequest): Promise<void> => {
+      await api.put(`/campaigns/${id}`, data);
+    },
+    [],
+  );
+
+  const deleteCampaign = useCallback(
+    async (id: number): Promise<void> => {
+      await api.delete(`/campaigns/${id}`);
+    },
+    [],
+  );
+
   return {
     authenticateUser,
     registerUser,
@@ -84,5 +99,7 @@ export function useApi() {
     refreshToken,
     registerCampaign,
     getCampaigns,
+    updateCampaign,
+    deleteCampaign,
   };
 }
