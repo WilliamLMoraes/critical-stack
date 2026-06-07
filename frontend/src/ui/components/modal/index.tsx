@@ -36,11 +36,14 @@ export default function Modal({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [animating, setAnimating] = useState(true);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
+      setAnimating(true);
       const timer = setTimeout(() => {
+        setAnimating(false);
         if (modalRef.current) {
           const { offsetWidth, offsetHeight } = modalRef.current;
           setPosition({
@@ -48,7 +51,7 @@ export default function Modal({
             y: (window.innerHeight - offsetHeight) / 2,
           });
         }
-      }, 0);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
@@ -104,8 +107,8 @@ export default function Modal({
   const modalContent = (
     <div
       ref={modalRef}
-      className={`${styles.modal} ${draggable ? styles.draggable : ""} ${className}`}
-      style={{
+      className={`${styles.modal} ${draggable ? styles.draggable : ""} ${animating ? styles.animating : ""} ${closeOnOutsideClick ? styles.inOverlay : ""} ${className}`}
+      style={closeOnOutsideClick ? undefined : {
         transform: `translate(${position.x}px, ${position.y}px)`,
         cursor: isDragging ? "grabbing" : "default",
       }}

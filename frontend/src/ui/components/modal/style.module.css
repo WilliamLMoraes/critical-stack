@@ -19,6 +19,8 @@
   max-width: 90vw;
   max-height: 90vh;
   position: fixed;
+  top: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -77,23 +79,26 @@
   flex: 1;
 }
 
-/* Animação de entrada */
-.modal {
+.animating {
   animation: modalSlideIn 0.3s ease-out;
 }
 
 @keyframes modalSlideIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9);
+    transform: scale(0.9);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
   }
 }
 
-/* Quando está sendo arrastada */
+.inOverlay {
+  position: relative;
+  animation: none;
+}
+
 .draggable {
   transition: none;
 }
