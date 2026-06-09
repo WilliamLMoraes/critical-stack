@@ -9,7 +9,6 @@ import {
   Texture,
   Assets,
 } from "pixi.js";
-import { useGridConfig } from "../../../contexts/grid-config-context";
 import styles from "./style.module.css";
 
 extend({ Container, Graphics, Sprite, Texture });
@@ -21,14 +20,24 @@ interface Token {
   y: number;
 }
 
+export interface GridConfig {
+  GRID_CELLS_WIDTH: number;
+  GRID_CELLS_HEIGHT: number;
+  CELL_SIZE: number;
+  SHOW_GRID: boolean;
+  BACKGROUND_COLOR: string;
+  GRID_COLOR: string;
+  TRANSPARENT_BACKGROUND: boolean;
+}
+
 interface GridMapProps {
   backgroundImage?: string;
   tokens?: Token[];
   onTokensChange?: (tokens: Token[]) => void;
+  config: GridConfig;
 }
 
-export default function GridMap({ backgroundImage, tokens = [], onTokensChange }: GridMapProps) {
-  const { config } = useGridConfig();
+export default function GridMap({ backgroundImage, tokens = [], onTokensChange, config }: GridMapProps) {
   const mapRef = useRef<Graphics>(null);
 
   const initialPosition: PointData = {
@@ -233,18 +242,10 @@ export default function GridMap({ backgroundImage, tokens = [], onTokensChange }
   );
 }
 
-function drawMap(
+export function drawMap(
   g: Graphics,
   bgTexture: Texture | null,
-  config: {
-    GRID_CELLS_WIDTH: number;
-    GRID_CELLS_HEIGHT: number;
-    CELL_SIZE: number;
-    SHOW_GRID: boolean;
-    BACKGROUND_COLOR: string;
-    GRID_COLOR: string;
-    TRANSPARENT_BACKGROUND: boolean;
-  },
+  config: GridConfig,
 ) {
   const gridWidth = config.GRID_CELLS_WIDTH * config.CELL_SIZE;
   const gridHeight = config.GRID_CELLS_HEIGHT * config.CELL_SIZE;

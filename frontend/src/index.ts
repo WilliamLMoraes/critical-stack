@@ -20,11 +20,6 @@ export {
   NOTIFICATIONS,
 } from "./config";
 
-export {
-  useGridConfig,
-  GridConfigProvider,
-} from "./contexts/grid-config-context";
-
 export { default as Button } from "./ui/components/button";
 export { default as Container } from "./ui/components/container";
 export { default as CardContainer } from "./ui/components/card-container";

@@ -22,8 +22,8 @@ const PrivateRoute = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const hideHeaderRoutes = [ROUTES.MAP];
-  const shouldHideHeader = (hideHeaderRoutes as string[]).includes(
-    location.pathname,
+  const shouldHideHeader = (hideHeaderRoutes as string[]).some((route) =>
+    location.pathname.startsWith(route + "/"),
   );
 
   const handleLogout = () => {

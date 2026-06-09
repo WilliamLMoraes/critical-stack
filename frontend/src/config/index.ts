@@ -16,10 +16,8 @@ export const NOTIFICATIONS = {
   VALIDATION_FORM_ERRORS: "Por favor, preencha todos os campos corretamente",
   USER_CREATED: "Usuário criado com sucesso",
   LOGIN_ERROR: "E-mail ou senha incorretos",
+  GRID_SAVED: "Grade salva com sucesso",
+  GRID_ERROR: "Erro ao salvar grade",
 } as const;
 
-export {
-  DEFAULT_GRID_CONFIG,
-  saveGridConfig,
-  loadGridConfig,
-} from "./grid";
+

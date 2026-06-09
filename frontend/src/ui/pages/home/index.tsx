@@ -127,7 +127,7 @@ export default function HomePage() {
                       description={campaign.description}
                       imageUrl={campaign.urlImage ?? undefined}
                       variant="featured"
-                      onPlay={() => navigate("/map")}
+                      onPlay={() => navigate(`/map/${campaign.id}`)}
                       onEdit={() => openEdit(campaign)}
                       onDelete={() => handleDelete(campaign)}
                     />

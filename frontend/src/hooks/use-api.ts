@@ -8,6 +8,8 @@ import type LoggedUserResponse from "../types/responses/logged-user";
 import type RegisterCampaignRequest from "../types/requests/register-campaign";
 import type UpdateCampaignRequest from "../types/requests/update-campaign";
 import type CampaignsResponse from "../types/responses/campaigns";
+import type CampaignGridRequest from "../types/requests/campaign-grid";
+import type CampaignGridResponse from "../types/responses/campaign-grid";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -92,6 +94,35 @@ export function useApi() {
     [],
   );
 
+  const getCampaignGrid = useCallback(
+    async (campaignId: number): Promise<CampaignGridResponse | null> => {
+      try {
+        const { data } = await api.get<CampaignGridResponse>(
+          `/campaigns/${campaignId}/grid`,
+        );
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
+  const saveCampaignGrid = useCallback(
+    async (campaignId: number, data: CampaignGridRequest): Promise<CampaignGridResponse | null> => {
+      try {
+        const { data: result } = await api.put<CampaignGridResponse>(
+          `/campaigns/${campaignId}/grid`,
+          data,
+        );
+        return result;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
   return {
     authenticateUser,
     registerUser,
@@ -101,5 +132,7 @@ export function useApi() {
     getCampaigns,
     updateCampaign,
     deleteCampaign,
+    getCampaignGrid,
+    saveCampaignGrid,
   };
 }

@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useParams } from "react-router";
 import GridMap from "../../components/grid-map";
 import Modal from "../../components/modal";
 import Button from "../../components/button";
@@ -12,10 +14,10 @@ import {
   ImageIcon,
   PersonGroupIcon,
 } from "../../icons";
-import { useGridConfig } from "../../../contexts/grid-config-context";
-import { DEFAULT_GRID_CONFIG, loadGridConfig } from "../../../config";
-
-type GridConfig = typeof DEFAULT_GRID_CONFIG;
+import type { GridConfig } from "../../components/grid-map";
+import { useApi } from "../../../hooks/use-api";
+import { NOTIFICATIONS } from "../../../config";
+import toast from "react-hot-toast";
 
 interface Token {
   id: string;
@@ -39,11 +41,14 @@ const TOKEN_IMAGES = [
 ];
 
 export default function GridMapPage() {
+  const { campaignId } = useParams<{ campaignId: string }>();
+  const { getCampaignGrid, saveCampaignGrid } = useApi();
+
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [topMenuOpen, setTopMenuOpen] = useState(false);
 
-  const [configValues, setConfigValues] = useState(loadGridConfig());
-  const { config, updateConfig, saveConfig: saveToStorage } = useGridConfig();
+  const [configValues, setConfigValues] = useState<GridConfig | null>(null);
+  const [draftValues, setDraftValues] = useState<GridConfig | null>(null);
 
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [colorModalOpen, setColorModalOpen] = useState(false);
@@ -56,26 +61,89 @@ export default function GridMapPage() {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    saveToStorage();
-  }, [config]);
+    if (!campaignId) return;
+
+    const loadGrid = async () => {
+      const grid = await getCampaignGrid(Number(campaignId));
+      if (!grid) return;
+
+      const newConfig = {
+        GRID_CELLS_WIDTH: grid.width,
+        GRID_CELLS_HEIGHT: grid.height,
+        CELL_SIZE: grid.cellSize,
+        SHOW_GRID: grid.showGrid,
+        GRID_COLOR: grid.lineColor,
+        BACKGROUND_COLOR: grid.backgroundColor,
+        TRANSPARENT_BACKGROUND: grid.imageBackgroundUrl ? true : false,
+      };
+      setConfigValues(newConfig);
+      if (grid.imageBackgroundUrl) {
+        setSelectedBackground(grid.imageBackgroundUrl);
+      }
+    };
+
+    loadGrid();
+  }, [campaignId]);
 
   const handleConfigChange = <K extends keyof GridConfig>(
     field: K,
     value: GridConfig[K],
   ) => {
-    setConfigValues((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setConfigValues((prev) => prev ? { ...prev, [field]: value } : prev);
   };
 
-  const saveConfig = () => {
-    updateConfig(configValues);
+  const handleDraftChange = <K extends keyof GridConfig>(
+    field: K,
+    value: GridConfig[K],
+  ) => {
+    setDraftValues((prev) => prev ? { ...prev, [field]: value } : prev);
   };
 
-  useEffect(() => {
-    saveConfig();
-  }, [configValues.SHOW_GRID, configValues.TRANSPARENT_BACKGROUND]);
+  const openModal = (setOpen: Dispatch<SetStateAction<boolean>>) => () => {
+    setDraftValues(configValues);
+    setOpen(true);
+  };
+
+  const closeModal = (setOpen: Dispatch<SetStateAction<boolean>>) => () => {
+    setDraftValues(null);
+    setOpen(false);
+  };
+
+  const saveDraft = (setOpen: Dispatch<SetStateAction<boolean>>) => () => {
+    if (!draftValues) return;
+    setConfigValues(draftValues);
+    setDraftValues(null);
+    setOpen(false);
+    saveToApi({ source: draftValues });
+  };
+
+  const saveToApi = async (overrides?: {
+    showGrid?: boolean;
+    imageBackgroundUrl?: string | null;
+    source?: GridConfig;
+  }) => {
+    const cfg = overrides?.source ?? configValues;
+    if (!cfg || !campaignId) return;
+
+    const result = await saveCampaignGrid(Number(campaignId), {
+      name: "Grid",
+      width: cfg.GRID_CELLS_WIDTH,
+      height: cfg.GRID_CELLS_HEIGHT,
+      cellSize: cfg.CELL_SIZE,
+      lineColor: cfg.GRID_COLOR,
+      backgroundColor: cfg.BACKGROUND_COLOR,
+      showGrid: overrides?.showGrid ?? cfg.SHOW_GRID,
+      imageBackgroundUrl: overrides?.imageBackgroundUrl !== undefined
+        ? overrides.imageBackgroundUrl
+        : (selectedBackground || null),
+    });
+
+    if (result) {
+      toast.success(NOTIFICATIONS.GRID_SAVED);
+    } else {
+      toast.error(NOTIFICATIONS.GRID_ERROR);
+    }
+  };
 
   const scrollCarousel = (direction: "left" | "right") => {
     if (carouselRef.current) {
@@ -89,10 +157,16 @@ export default function GridMapPage() {
 
   const handleSelectBackground = (image: string) => {
     setSelectedBackground(image);
-    if (!configValues.TRANSPARENT_BACKGROUND) {
-      setConfigValues((prev) => ({ ...prev, TRANSPARENT_BACKGROUND: true }));
+    if (configValues && !configValues.TRANSPARENT_BACKGROUND) {
+      setConfigValues((prev) => prev ? { ...prev, TRANSPARENT_BACKGROUND: true } : prev);
     }
+
+    saveToApi({ imageBackgroundUrl: image || null });
   };
+
+  if (!configValues) {
+    return <div className={styles.container}><p>Carregando...</p></div>;
+  }
 
   return (
     <div className={styles.container}>
@@ -110,7 +184,7 @@ export default function GridMapPage() {
                   title="Mudar tamanho da grade"
                   variant="menu"
                   iconOnly
-                  onClick={() => setConfigModalOpen(true)}
+                  onClick={openModal(setConfigModalOpen)}
                 >
                   <GridResizeIcon />
                 </Button>
@@ -120,7 +194,7 @@ export default function GridMapPage() {
                   title="Mudar cor da grade"
                   variant="menu"
                   iconOnly
-                  onClick={() => setColorModalOpen(true)}
+                  onClick={openModal(setColorModalOpen)}
                 >
                   <GridChangeColorIcon />
                 </Button>
@@ -130,10 +204,12 @@ export default function GridMapPage() {
                   title="Desativar grade"
                   variant="menu"
                   iconOnly
-                  active={!configValues.SHOW_GRID}
-                  onClick={() =>
-                    handleConfigChange("SHOW_GRID", !configValues.SHOW_GRID)
-                  }
+                  active={!configValues!.SHOW_GRID}
+                  onClick={() => {
+                    const newShowGrid = !configValues!.SHOW_GRID;
+                    handleConfigChange("SHOW_GRID", newShowGrid);
+                    saveToApi({ showGrid: newShowGrid });
+                  }}
                 >
                   <GridOffIcon fontSize="large" />
                 </Button>
@@ -202,7 +278,7 @@ export default function GridMapPage() {
         </div>
       </div>
 
-      <GridMap backgroundImage={selectedBackground} tokens={tokens} onTokensChange={setTokens} />
+      <GridMap config={configValues} backgroundImage={selectedBackground} tokens={tokens} onTokensChange={setTokens} />
 
       <button
         className={styles.sideBarButton}
@@ -215,7 +291,7 @@ export default function GridMapPage() {
       </button>
       <Modal
         isOpen={configModalOpen}
-        toggleModal={setConfigModalOpen}
+        toggleModal={(open) => { if (!open) setDraftValues(null); setConfigModalOpen(open); }}
         closeOnOutsideClick={false}
         draggable={true}
         title="Configurar Grade"
@@ -225,9 +301,9 @@ export default function GridMapPage() {
             <label className={styles.modalLabel}>Largura da Grade:</label>
             <input
               type="number"
-              value={configValues.GRID_CELLS_WIDTH}
+              value={draftValues?.GRID_CELLS_WIDTH ?? configValues.GRID_CELLS_WIDTH}
               onChange={(e) =>
-                handleConfigChange(
+                handleDraftChange(
                   "GRID_CELLS_WIDTH",
                   parseInt(e.target.value) || 1,
                 )
@@ -242,9 +318,9 @@ export default function GridMapPage() {
             <label className={styles.modalLabel}>Altura da Grade:</label>
             <input
               type="number"
-              value={configValues.GRID_CELLS_HEIGHT}
+              value={draftValues?.GRID_CELLS_HEIGHT ?? configValues.GRID_CELLS_HEIGHT}
               onChange={(e) =>
-                handleConfigChange(
+                handleDraftChange(
                   "GRID_CELLS_HEIGHT",
                   parseInt(e.target.value) || 1,
                 )
@@ -257,12 +333,12 @@ export default function GridMapPage() {
 
           <div className={styles.modalButton}>
             <Button
-              onClick={() => setConfigModalOpen(false)}
+              onClick={closeModal(setConfigModalOpen)}
               variant="secondary"
             >
               Cancelar
             </Button>
-            <Button onClick={saveConfig} variant="primary">
+            <Button onClick={saveDraft(setConfigModalOpen)} variant="primary">
               Salvar
             </Button>
           </div>
@@ -278,7 +354,7 @@ export default function GridMapPage() {
       </button>
       <Modal
         isOpen={colorModalOpen}
-        toggleModal={setColorModalOpen}
+        toggleModal={(open) => { if (!open) setDraftValues(null); setColorModalOpen(open); }}
         closeOnOutsideClick={false}
         draggable={true}
         title="Configurar Cor da Grade"
@@ -288,8 +364,8 @@ export default function GridMapPage() {
             <label className={styles.modalLabel}>Cor da Linha:</label>
             <input
               type="color"
-              value={configValues.GRID_COLOR}
-              onChange={(e) => handleConfigChange("GRID_COLOR", e.target.value)}
+              value={draftValues?.GRID_COLOR ?? configValues.GRID_COLOR}
+              onChange={(e) => handleDraftChange("GRID_COLOR", e.target.value)}
               className={styles.modalColorPicker}
             />
           </div>
@@ -297,9 +373,9 @@ export default function GridMapPage() {
             <label className={styles.modalLabel}>Cor de Fundo:</label>
             <input
               type="color"
-              value={configValues.BACKGROUND_COLOR}
+              value={draftValues?.BACKGROUND_COLOR ?? configValues.BACKGROUND_COLOR}
               onChange={(e) =>
-                handleConfigChange("BACKGROUND_COLOR", e.target.value)
+                handleDraftChange("BACKGROUND_COLOR", e.target.value)
               }
               className={styles.modalColorPicker}
             />
@@ -307,12 +383,12 @@ export default function GridMapPage() {
 
           <div className={styles.modalButton}>
             <Button
-              onClick={() => setColorModalOpen(false)}
+              onClick={closeModal(setColorModalOpen)}
               variant="secondary"
             >
               Cancelar
             </Button>
-            <Button onClick={saveConfig} variant="primary">
+            <Button onClick={saveDraft(setColorModalOpen)} variant="primary">
               Salvar
             </Button>
           </div>
