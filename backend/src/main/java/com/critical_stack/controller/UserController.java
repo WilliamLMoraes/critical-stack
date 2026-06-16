@@ -1,6 +1,7 @@
 package com.critical_stack.controller;
 
 import com.critical_stack.dto.user.request.AuthUserRequest;
+import com.critical_stack.dto.user.request.RefreshTokenRequest;
 import com.critical_stack.dto.user.request.RegisterUserRequest;
 import com.critical_stack.dto.user.response.AuthUserResponse;
 import com.critical_stack.dto.user.response.UserResponse;
@@ -35,7 +36,7 @@ public class UserController {
     }
 
     @PostMapping("/refresh")
-    public AuthUserResponse refresh() {
-        return userService.refresh();
+    public AuthUserResponse refresh(@RequestBody RefreshTokenRequest request) {
+        return userService.refresh(request.getToken());
     }
 }

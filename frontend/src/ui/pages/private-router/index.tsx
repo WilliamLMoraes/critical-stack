@@ -10,8 +10,8 @@ import {
 import { useLocation, Navigate, Outlet, useNavigate } from "react-router";
 
 const PrivateRoute = () => {
-  const { logout, token, login } = useAuth();
-  const { user, refreshToken } = useApi();
+  const { logout, token } = useAuth();
+  const { user } = useApi();
   const [userLogged, setUserLogged] = useState<{
     username: string;
     email: string;
@@ -32,31 +32,16 @@ const PrivateRoute = () => {
   };
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const response = await user();
-      if (response) {
-        setUserLogged(response);
-        setAuthChecked(true);
-        return;
+    const loadUser = async () => {
+      const result = await user();
+      if (result) {
+        setUserLogged(result);
       }
-
-      const refreshed = await refreshToken();
-      if (refreshed) {
-        login(refreshed.token, refreshed.expiresIn);
-        const retry = await user();
-        if (retry) {
-          setUserLogged(retry);
-          setAuthChecked(true);
-          return;
-        }
-      }
-
-      logout();
-      navigate(ROUTES.LOGIN, { replace: true });
+      setAuthChecked(true);
     };
 
     if (token) {
-      checkAuth();
+      loadUser();
     } else {
       setAuthChecked(true);
     }
@@ -64,6 +49,14 @@ const PrivateRoute = () => {
 
   if (!token) {
     return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+
+  if (!authChecked) {
+    return (
+      <div className={Styles.spinnerContainer}>
+        <div className={Styles.spinner} />
+      </div>
+    );
   }
 
   const selectedTheme = localStorage.getItem("theme");

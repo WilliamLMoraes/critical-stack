@@ -14,4 +14,5 @@
     <include file="campaigns_grid/campaigns_grid-altertable-01.sql" relativeToChangelogFile="true"/>
     <include file="tokens/tokens-create-table.sql" relativeToChangelogFile="true"/>
     <include file="campaigns/campaigns-altertable-02.sql" relativeToChangelogFile="true"/>
+    <include file="campaigns_grid/campaigns_grid-altertable-02.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

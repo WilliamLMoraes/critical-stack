@@ -47,4 +47,10 @@ public class CampaignGridDomain extends BaseDomain {
 
     @Column(name = "image_background_url", columnDefinition = "TEXT")
     private String imageBackgroundUrl;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "show_background_image", nullable = false)
+    private Boolean showBackgroundImage;
 }

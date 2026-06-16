@@ -34,4 +34,8 @@ public class CampaignGridRequest {
     private Boolean showGrid;
 
     private String imageBackgroundUrl;
+
+    private String description;
+
+    private Boolean showBackgroundImage;
 }

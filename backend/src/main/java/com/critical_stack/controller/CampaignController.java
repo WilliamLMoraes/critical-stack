@@ -3,6 +3,7 @@ package com.critical_stack.controller;
 import com.critical_stack.dto.campaign.request.CampaignGridRequest;
 import com.critical_stack.dto.campaign.request.CreateCampaignRequest;
 import com.critical_stack.dto.campaign.request.UpdateCampaignRequest;
+import com.critical_stack.dto.campaign.response.CampaignGridListResponse;
 import com.critical_stack.dto.campaign.response.CampaignGridResponse;
 import com.critical_stack.dto.campaign.response.CampaignsResponse;
 import com.critical_stack.service.campaigns.CampaignGridService;
@@ -50,13 +51,31 @@ public class CampaignController {
 
     @GetMapping("/{campaignId}/grid")
     @ResponseStatus(OK)
-    public CampaignGridResponse getGrid(@PathVariable Long campaignId) {
-        return campaignGridService.getGridByCampaignId(campaignId);
+    public List<CampaignGridListResponse> getAllGrids(@PathVariable Long campaignId) {
+        return campaignGridService.getAllGridsByCampaignId(campaignId);
     }
 
-    @PutMapping("/{campaignId}/grid")
+    @GetMapping("/{campaignId}/grid/{gridId}")
     @ResponseStatus(OK)
-    public CampaignGridResponse saveGrid(@PathVariable Long campaignId, @Valid @RequestBody CampaignGridRequest request) {
-        return campaignGridService.saveGridByCampaignId(campaignId, request);
+    public CampaignGridResponse getGrid(@PathVariable Long campaignId, @PathVariable Long gridId) {
+        return campaignGridService.getGridById(campaignId, gridId);
+    }
+
+    @PostMapping("/{campaignId}/grid")
+    @ResponseStatus(CREATED)
+    public void createGrid(@PathVariable Long campaignId, @Valid @RequestBody CampaignGridRequest request) {
+        campaignGridService.createGrid(campaignId, request);
+    }
+
+    @PutMapping("/{campaignId}/grid/{gridId}")
+    @ResponseStatus(NO_CONTENT)
+    public void updateGrid(@PathVariable Long campaignId, @PathVariable Long gridId, @Valid @RequestBody CampaignGridRequest request) {
+        campaignGridService.updateGrid(campaignId, gridId, request);
+    }
+
+    @DeleteMapping("/{campaignId}/grid/{gridId}")
+    @ResponseStatus(NO_CONTENT)
+    public void deleteGrid(@PathVariable Long campaignId, @PathVariable Long gridId) {
+        campaignGridService.deleteGrid(campaignId, gridId);
     }
 }

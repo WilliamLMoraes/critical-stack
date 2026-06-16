@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import GridMap from "../../components/grid-map";
 import Modal from "../../components/modal";
+import ConfirmDialog from "../../components/confirm-dialog";
 import Button from "../../components/button";
 import styles from "./style.module.css";
 import logoIcon from "../../../assets/svgs/logos/logo-2.svg";
+import noImage from "../../../assets/images/grid-backgrounds/no-image.png";
 import {
   BackgroundIcon,
   GridChangeColorIcon,
@@ -13,10 +15,13 @@ import {
   GridResizeIcon,
   ImageIcon,
   PersonGroupIcon,
+  EyeIcon,
+  TrashIcon,
+  PlusIcon,
 } from "../../icons";
 import type { GridConfig } from "../../components/grid-map";
 import { useApi } from "../../../hooks/use-api";
-import { NOTIFICATIONS } from "../../../config";
+import { NOTIFICATIONS, ROUTES } from "../../../config";
 import toast from "react-hot-toast";
 
 interface Token {
@@ -26,23 +31,17 @@ interface Token {
   y: number;
 }
 
-const BACKGROUND_IMAGES = [
-  "/images/grid-backgrounds/antiguamente-arena-colosseum-ruins-map-fantasy-tabletop-rpg-exterior-battlemap-ttrpg-adventures-encounges-entra-nas-344021629.webp",
-  "/images/grid-backgrounds/images (1).jpeg",
-  "/images/grid-backgrounds/images (2).jpeg",
-  "/images/grid-backgrounds/czx8cb6zah831.png",
-  "/images/grid-backgrounds/7c0abc4207dfa3a98a9e478ff05ef88d.jpg",
-  "/images/grid-backgrounds/599d66420ce710cdbfa83e3db238c7e5.jpg",
-  "/images/grid-backgrounds/6515c521a85c18ab7ea65fcf29ce3785.jpg",
-];
-
-const TOKEN_IMAGES = [
-  "/images/tokens/Images_H0SqZbnlzsnHLn7lsFof_resized_1748359002114l_w_800x800.webp",
-];
+interface GridListItem {
+  id: number;
+  folderId: number | null;
+  name: string;
+  imageBackgroundUrl: string | null;
+}
 
 export default function GridMapPage() {
   const { campaignId } = useParams<{ campaignId: string }>();
-  const { getCampaignGrid, saveCampaignGrid } = useApi();
+  const navigate = useNavigate();
+  const { getCampaignGrids, getCampaignGridById, createCampaignGrid, updateCampaignGrid, deleteCampaignGrid } = useApi();
 
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [topMenuOpen, setTopMenuOpen] = useState(false);
@@ -53,37 +52,78 @@ export default function GridMapPage() {
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [colorModalOpen, setColorModalOpen] = useState(false);
   const [tokensModalOpen, setTokensModalOpen] = useState(false);
-  const [selectedBackground, setSelectedBackground] = useState<
-    string | undefined
-  >();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const [tokens, setTokens] = useState<Token[]>([]);
+  const [gridList, setGridList] = useState<GridListItem[]>([]);
+  const [selectedGridId, setSelectedGridId] = useState<number | null>(null);
+  const [loadingGrids, setLoadingGrids] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [selectedBackgroundUrl, setSelectedBackgroundUrl] = useState<string | null>(null);
+
+  const [selectedGridDetails, setSelectedGridDetails] = useState<{
+    name: string;
+    description: string;
+    imageUrl: string;
+    width: number;
+    height: number;
+    cellSize: number;
+    lineColor: string;
+    backgroundColor: string;
+    showGrid: boolean;
+  } | null>(null);
+
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    imageUrl: "",
+    description: "",
+  });
+  const [createFormError, setCreateFormError] = useState("");
 
   const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!campaignId) return;
 
-    const loadGrid = async () => {
-      const grid = await getCampaignGrid(Number(campaignId));
-      if (!grid) return;
-
-      const newConfig = {
-        GRID_CELLS_WIDTH: grid.width,
-        GRID_CELLS_HEIGHT: grid.height,
-        CELL_SIZE: grid.cellSize,
-        SHOW_GRID: grid.showGrid,
-        GRID_COLOR: grid.lineColor,
-        BACKGROUND_COLOR: grid.backgroundColor,
-        TRANSPARENT_BACKGROUND: grid.imageBackgroundUrl ? true : false,
-      };
-      setConfigValues(newConfig);
-      if (grid.imageBackgroundUrl) {
-        setSelectedBackground(grid.imageBackgroundUrl);
-      }
-    };
-
-    loadGrid();
+    loadGrids();
   }, [campaignId]);
+
+  const loadGrids = async () => {
+    setLoadingGrids(true);
+    const grids = await getCampaignGrids(Number(campaignId));
+    if (!grids) {
+      setLoadError(true);
+      setLoadingGrids(false);
+      toast.error("Erro de conexão com o servidor.");
+      navigate(ROUTES.HOME, { replace: true });
+      return;
+    }
+    if (grids.length > 0) {
+      setGridList(grids);
+      selectGrid(grids[0].id);
+    }
+    setLoadingGrids(false);
+  };
+
+  const selectGrid = async (gridId: number) => {
+    setSelectedGridId(gridId);
+    const grid = await getCampaignGridById(Number(campaignId), gridId);
+    if (!grid) return;
+
+    const newConfig = {
+      GRID_CELLS_WIDTH: grid.width,
+      GRID_CELLS_HEIGHT: grid.height,
+      CELL_SIZE: grid.cellSize,
+      SHOW_GRID: grid.showGrid,
+      GRID_COLOR: grid.lineColor,
+      BACKGROUND_COLOR: grid.backgroundColor,
+      TRANSPARENT_BACKGROUND: grid.showBackgroundImage,
+    };
+    setConfigValues(newConfig);
+    setSelectedBackgroundUrl(grid.imageBackgroundUrl);
+  };
 
   const handleConfigChange = <K extends keyof GridConfig>(
     field: K,
@@ -109,23 +149,28 @@ export default function GridMapPage() {
     setOpen(false);
   };
 
-  const saveDraft = (setOpen: Dispatch<SetStateAction<boolean>>) => () => {
-    if (!draftValues) return;
+  const saveDraft = (setOpen: Dispatch<SetStateAction<boolean>>) => async () => {
+    if (!draftValues || !selectedGridId || !campaignId) return;
     setConfigValues(draftValues);
     setDraftValues(null);
     setOpen(false);
-    saveToApi({ source: draftValues });
+    await saveToApiConfig({ source: draftValues });
   };
 
-  const saveToApi = async (overrides?: {
+  const saveToApiConfig = async (overrides?: {
     showGrid?: boolean;
     imageBackgroundUrl?: string | null;
+    showBackgroundImage?: boolean;
     source?: GridConfig;
   }) => {
     const cfg = overrides?.source ?? configValues;
-    if (!cfg || !campaignId) return;
+    if (!cfg || !campaignId || !selectedGridId) return;
 
-    const result = await saveCampaignGrid(Number(campaignId), {
+    const bgUrl = overrides?.imageBackgroundUrl !== undefined
+      ? overrides.imageBackgroundUrl
+      : selectedBackgroundUrl;
+
+    const success = await updateCampaignGrid(Number(campaignId), selectedGridId, {
       name: "Grid",
       width: cfg.GRID_CELLS_WIDTH,
       height: cfg.GRID_CELLS_HEIGHT,
@@ -133,12 +178,11 @@ export default function GridMapPage() {
       lineColor: cfg.GRID_COLOR,
       backgroundColor: cfg.BACKGROUND_COLOR,
       showGrid: overrides?.showGrid ?? cfg.SHOW_GRID,
-      imageBackgroundUrl: overrides?.imageBackgroundUrl !== undefined
-        ? overrides.imageBackgroundUrl
-        : (selectedBackground || null),
+      imageBackgroundUrl: bgUrl,
+      showBackgroundImage: overrides?.showBackgroundImage ?? cfg.TRANSPARENT_BACKGROUND,
     });
 
-    if (result) {
+    if (success) {
       toast.success(NOTIFICATIONS.GRID_SAVED);
     } else {
       toast.error(NOTIFICATIONS.GRID_ERROR);
@@ -155,17 +199,113 @@ export default function GridMapPage() {
     }
   };
 
-  const handleSelectBackground = (image: string) => {
-    setSelectedBackground(image);
-    if (configValues && !configValues.TRANSPARENT_BACKGROUND) {
-      setConfigValues((prev) => prev ? { ...prev, TRANSPARENT_BACKGROUND: true } : prev);
-    }
-
-    saveToApi({ imageBackgroundUrl: image || null });
+  const handleSelectBackground = async (grid: GridListItem) => {
+    if (grid.id === selectedGridId) return;
+    setSelectedGridId(grid.id);
+    await selectGrid(grid.id);
   };
 
-  if (!configValues) {
+  const openCreateModal = () => {
+    setCreateForm({ name: "", imageUrl: "", description: "" });
+    setCreateFormError("");
+    setCreateModalOpen(true);
+  };
+
+  const handleCreateGrid = async () => {
+    if (!createForm.name.trim()) {
+      setCreateFormError("O nome é obrigatório.");
+      return;
+    }
+
+    const success = await createCampaignGrid(Number(campaignId), {
+      name: createForm.name,
+      width: 20,
+      height: 20,
+      cellSize: 32,
+      lineColor: "#cccccc",
+      backgroundColor: "#1a1a1a",
+      showGrid: true,
+      imageBackgroundUrl: createForm.imageUrl || null,
+      description: createForm.description || undefined,
+      showBackgroundImage: createForm.imageUrl ? true : false,
+    });
+
+    if (success) {
+      toast.success(NOTIFICATIONS.GRID_CREATED);
+      setCreateModalOpen(false);
+      await loadGrids();
+    } else {
+      toast.error(NOTIFICATIONS.GRID_ERROR);
+    }
+  };
+
+  const openViewModal = async (grid: GridListItem) => {
+    const fullGrid = await getCampaignGridById(Number(campaignId), grid.id);
+    if (!fullGrid) return;
+
+    setSelectedGridDetails({
+      name: fullGrid.name,
+      description: fullGrid.description || "",
+      imageUrl: fullGrid.imageBackgroundUrl || "",
+      width: fullGrid.width,
+      height: fullGrid.height,
+      cellSize: fullGrid.cellSize,
+      lineColor: fullGrid.lineColor,
+      backgroundColor: fullGrid.backgroundColor,
+      showGrid: fullGrid.showGrid,
+    });
+    setViewModalOpen(true);
+  };
+
+  const handleSaveViewModal = async () => {
+    if (!selectedGridDetails || !selectedGridId || !campaignId) return;
+
+    const success = await updateCampaignGrid(Number(campaignId), selectedGridId, {
+      name: selectedGridDetails.name,
+      width: selectedGridDetails.width,
+      height: selectedGridDetails.height,
+      cellSize: selectedGridDetails.cellSize,
+      lineColor: selectedGridDetails.lineColor,
+      backgroundColor: selectedGridDetails.backgroundColor,
+      showGrid: selectedGridDetails.showGrid,
+      imageBackgroundUrl: selectedGridDetails.imageUrl || null,
+      description: selectedGridDetails.description || undefined,
+      showBackgroundImage: configValues?.TRANSPARENT_BACKGROUND ?? false,
+    });
+
+    if (success) {
+      toast.success(NOTIFICATIONS.GRID_SAVED);
+      setViewModalOpen(false);
+      await loadGrids();
+    } else {
+      toast.error(NOTIFICATIONS.GRID_ERROR);
+    }
+  };
+
+  const handleDeleteGrid = async () => {
+    if (!selectedGridId || !campaignId) return;
+
+    const success = await deleteCampaignGrid(Number(campaignId), selectedGridId);
+
+    if (success) {
+      toast.success(NOTIFICATIONS.GRID_DELETED);
+      setDeleteDialogOpen(false);
+      await loadGrids();
+    } else {
+      toast.error(NOTIFICATIONS.GRID_DELETE_ERROR);
+    }
+  };
+
+  if (loadingGrids) {
     return <div className={styles.container}><p>Carregando...</p></div>;
+  }
+
+  if (!loadError && !configValues) {
+    return <div className={styles.container}><p>Nenhuma grade encontrada. Crie uma nova grade.</p></div>;
+  }
+
+  if (loadError) {
+    return null;
   }
 
   return (
@@ -208,7 +348,7 @@ export default function GridMapPage() {
                   onClick={() => {
                     const newShowGrid = !configValues!.SHOW_GRID;
                     handleConfigChange("SHOW_GRID", newShowGrid);
-                    saveToApi({ showGrid: newShowGrid });
+                    saveToApiConfig({ showGrid: newShowGrid });
                   }}
                 >
                   <GridOffIcon fontSize="large" />
@@ -241,17 +381,23 @@ export default function GridMapPage() {
             ‹
           </button>
           <div className={styles.carousel} ref={carouselRef}>
-            {BACKGROUND_IMAGES.map((image, index) => (
+            {gridList.map((grid) => (
               <div
-                key={index}
+                key={grid.id}
                 className={`${styles.carouselItem} ${
-                  selectedBackground === image ? styles.selected : ""
+                  selectedGridId === grid.id ? styles.selected : ""
                 }`}
-                onClick={() => handleSelectBackground(image)}
+                onClick={() => handleSelectBackground(grid)}
               >
-                <img src={image} alt={`Background ${index + 1}`} />
+                <img src={grid.imageBackgroundUrl || noImage} alt={grid.name} />
               </div>
             ))}
+            <div
+              className={styles.carouselItemAdd}
+              onClick={openCreateModal}
+            >
+              <PlusIcon />
+            </div>
           </div>
           <button
             className={styles.carouselButton}
@@ -265,20 +411,45 @@ export default function GridMapPage() {
             title="Exibir imagem"
             variant="menu"
             iconOnly
-            active={configValues.TRANSPARENT_BACKGROUND}
-            onClick={() =>
-              handleConfigChange(
-                "TRANSPARENT_BACKGROUND",
-                !configValues.TRANSPARENT_BACKGROUND,
-              )
-            }
+            disabled={!selectedBackgroundUrl}
+            active={configValues!.TRANSPARENT_BACKGROUND}
+            onClick={() => {
+              const newValue = !configValues!.TRANSPARENT_BACKGROUND;
+              handleConfigChange("TRANSPARENT_BACKGROUND", newValue);
+              saveToApiConfig({ showBackgroundImage: newValue });
+            }}
           >
             <ImageIcon />
           </Button>
         </div>
+        <div className={styles.gridActions}>
+          {selectedGridId && (
+            <>
+              <Button
+                title="Visualizar detalhes"
+                variant="menu"
+                iconOnly
+                onClick={() => {
+                  const grid = gridList.find((g) => g.id === selectedGridId);
+                  if (grid) openViewModal(grid);
+                }}
+              >
+                <EyeIcon />
+              </Button>
+              <Button
+                title="Excluir grade"
+                variant="menu"
+                iconOnly
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <TrashIcon />
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
-      <GridMap config={configValues} backgroundImage={selectedBackground} tokens={tokens} onTokensChange={setTokens} />
+      <GridMap config={configValues} backgroundImage={selectedBackgroundUrl || undefined} tokens={tokens} onTokensChange={setTokens} />
 
       <button
         className={styles.sideBarButton}
@@ -403,26 +574,6 @@ export default function GridMapPage() {
         title="Selecionar Token"
       >
         <div className={styles.modalContainer}>
-          <div className={styles.tokenList}>
-            {TOKEN_IMAGES.map((image, index) => (
-              <div
-                key={index}
-                className={styles.tokenItem}
-                onClick={() => {
-                  const newToken: Token = {
-                    id: `${Date.now()}-${index}`,
-                    image,
-                    x: 0,
-                    y: 0,
-                  };
-                  setTokens((prev) => [...prev, newToken]);
-                  setTokensModalOpen(false);
-                }}
-              >
-                <img src={image} alt={`Token ${index + 1}`} />
-              </div>
-            ))}
-          </div>
           <div className={styles.modalButton}>
             <Button
               onClick={() => setTokensModalOpen(false)}
@@ -433,6 +584,173 @@ export default function GridMapPage() {
           </div>
         </div>
       </Modal>
+
+      <Modal
+        isOpen={createModalOpen}
+        toggleModal={setCreateModalOpen}
+        closeOnOutsideClick={true}
+        draggable={false}
+        title="Nova Grade"
+      >
+        <div className={styles.modalContainer}>
+          <div>
+            <label className={styles.modalLabel}>Nome <span style={{color: "red"}}>*</span></label>
+            <input
+              type="text"
+              value={createForm.name}
+              onChange={(e) => { setCreateForm((f) => ({ ...f, name: e.target.value })); setCreateFormError(""); }}
+              className={styles.modalImput}
+              placeholder="Nome da grade"
+            />
+            {createFormError && (
+              <span style={{ color: "red", fontSize: "12px" }}>{createFormError}</span>
+            )}
+          </div>
+          <div>
+            <label className={styles.modalLabel}>URL da Imagem:</label>
+            <input
+              type="text"
+              value={createForm.imageUrl}
+              onChange={(e) => setCreateForm((f) => ({ ...f, imageUrl: e.target.value }))}
+              className={styles.modalImput}
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <label className={styles.modalLabel}>Descrição:</label>
+            <textarea
+              value={createForm.description}
+              onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
+              className={styles.modalTextarea}
+              placeholder="Descrição opcional..."
+              rows={3}
+            />
+          </div>
+          <div className={styles.modalButton}>
+            <Button onClick={() => setCreateModalOpen(false)} variant="secondary">
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateGrid} variant="primary">
+              Criar
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={viewModalOpen}
+        toggleModal={setViewModalOpen}
+        closeOnOutsideClick={true}
+        draggable={false}
+        title="Detalhes da Grade"
+      >
+        {selectedGridDetails && (
+          <div className={styles.modalContainer}>
+            <div>
+              <label className={styles.modalLabel}>Nome:</label>
+              <input
+                type="text"
+                value={selectedGridDetails.name}
+                onChange={(e) => setSelectedGridDetails((d) => d ? { ...d, name: e.target.value } : d)}
+                className={styles.modalImput}
+              />
+            </div>
+            <div>
+              <label className={styles.modalLabel}>URL da Imagem:</label>
+              <input
+                type="text"
+                value={selectedGridDetails.imageUrl}
+                onChange={(e) => setSelectedGridDetails((d) => d ? { ...d, imageUrl: e.target.value } : d)}
+                className={styles.modalImput}
+              />
+            </div>
+            <div>
+              <label className={styles.modalLabel}>Descrição:</label>
+              <textarea
+                value={selectedGridDetails.description}
+                onChange={(e) => setSelectedGridDetails((d) => d ? { ...d, description: e.target.value } : d)}
+                className={styles.modalTextarea}
+                rows={3}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <div style={{ flex: 1 }}>
+                <label className={styles.modalLabel}>Largura:</label>
+                <input
+                  type="number"
+                  value={selectedGridDetails.width}
+                  onChange={(e) => setSelectedGridDetails((d) => d ? { ...d, width: parseInt(e.target.value) || 1 } : d)}
+                  className={styles.modalImput}
+                  min="1"
+                  max="100"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className={styles.modalLabel}>Altura:</label>
+                <input
+                  type="number"
+                  value={selectedGridDetails.height}
+                  onChange={(e) => setSelectedGridDetails((d) => d ? { ...d, height: parseInt(e.target.value) || 1 } : d)}
+                  className={styles.modalImput}
+                  min="1"
+                  max="100"
+                />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <div style={{ flex: 1 }}>
+                <label className={styles.modalLabel}>Tamanho da Célula:</label>
+                <input
+                  type="number"
+                  value={selectedGridDetails.cellSize}
+                  onChange={(e) => setSelectedGridDetails((d) => d ? { ...d, cellSize: parseInt(e.target.value) || 8 } : d)}
+                  className={styles.modalImput}
+                  min="8"
+                  max="128"
+                />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <div style={{ flex: 1 }}>
+                <label className={styles.modalLabel}>Cor da Linha:</label>
+                <input
+                  type="color"
+                  value={selectedGridDetails.lineColor}
+                  onChange={(e) => setSelectedGridDetails((d) => d ? { ...d, lineColor: e.target.value } : d)}
+                  className={styles.modalColorPicker}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className={styles.modalLabel}>Cor de Fundo:</label>
+                <input
+                  type="color"
+                  value={selectedGridDetails.backgroundColor}
+                  onChange={(e) => setSelectedGridDetails((d) => d ? { ...d, backgroundColor: e.target.value } : d)}
+                  className={styles.modalColorPicker}
+                />
+              </div>
+            </div>
+            <div className={styles.modalButton}>
+              <Button onClick={() => setViewModalOpen(false)} variant="secondary">
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveViewModal} variant="primary">
+                Salvar
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteGrid}
+        title="Excluir Grade"
+        message="Tem certeza que deseja excluir esta grade? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ package com.critical_stack.service.user;
 import com.critical_stack.domain.UserDomain;
 import com.critical_stack.exception.UserNotFoundException;
 import com.critical_stack.repository.UserRepository;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.time.Instant;
 
 @Service
@@ -48,5 +50,20 @@ public class JWTUserService {
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(jwt)).getTokenValue();
+    }
+
+    public String generateToken(Long userId, long expiresIn) {
+        UserDomain user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+        return generateToken(user, expiresIn);
+    }
+
+    public Long extractUserIdFromToken(String tokenString) {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(tokenString);
+            return signedJWT.getJWTClaimsSet().getLongClaim("id");
+        } catch (ParseException e) {
+            throw new RuntimeException("Failed to parse token", e);
+        }
     }
 }

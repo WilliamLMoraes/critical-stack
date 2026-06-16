@@ -3,6 +3,8 @@ import { TfiLayoutGrid3Alt } from "react-icons/tfi";
 import { MdOutlineGridOff } from "react-icons/md";
 import { TbBackground } from "react-icons/tb";
 import { FaRegImage, FaUserGroup } from "react-icons/fa6";
+import { IoEyeOutline, IoTrashOutline, IoAddOutline } from "react-icons/io5";
+import { FiEdit } from "react-icons/fi";
 
 import type { IconType } from "react-icons";
 
@@ -12,3 +14,7 @@ export const GridOffIcon: IconType = MdOutlineGridOff;
 export const BackgroundIcon: IconType = TbBackground;
 export const ImageIcon: IconType = FaRegImage;
 export const PersonGroupIcon: IconType = FaUserGroup;
+export const EyeIcon: IconType = IoEyeOutline;
+export const EditIcon: IconType = FiEdit;
+export const TrashIcon: IconType = IoTrashOutline;
+export const PlusIcon: IconType = IoAddOutline;

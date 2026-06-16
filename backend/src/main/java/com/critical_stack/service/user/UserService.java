@@ -23,7 +23,7 @@ import static com.critical_stack.mapper.user.CreateUserMapper.*;
 @RequiredArgsConstructor
 public class UserService {
 
-    private static final Long TOKEN_EXPIRATION_SECONDS = 15L * 60L;
+    private static final Long TOKEN_EXPIRATION_SECONDS = 3600L;
     private final UserRepository userRepository;
     private final RegisterUserValidator registerUserValidator;
     private final PasswordEncoder passwordEncoder;
@@ -59,12 +59,9 @@ public class UserService {
         return UserMapper.toResponse(user);
     }
 
-    public AuthUserResponse refresh() {
-
-        UserDomain user = authenticatedUserService.getLoggedUserDomain();
-
-        String token = authenticatedUserService.generateToken(user, TOKEN_EXPIRATION_SECONDS);
-
+    public AuthUserResponse refresh(String tokenString) {
+        Long userId = authenticatedUserService.extractUserIdFromToken(tokenString);
+        String token = authenticatedUserService.generateToken(userId, TOKEN_EXPIRATION_SECONDS);
         return toResponse(token, TOKEN_EXPIRATION_SECONDS);
     }
 

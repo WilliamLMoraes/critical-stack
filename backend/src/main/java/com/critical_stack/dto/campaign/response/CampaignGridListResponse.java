@@ -9,19 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CampaignGridResponse {
+public class CampaignGridListResponse {
 
     private Long id;
-    private Long campaignId;
     private Long folderId;
     private String name;
-    private Integer width;
-    private Integer height;
-    private Integer cellSize;
-    private String lineColor;
-    private String backgroundColor;
-    private Boolean showGrid;
     private String imageBackgroundUrl;
-    private String description;
-    private Boolean showBackgroundImage;
 }

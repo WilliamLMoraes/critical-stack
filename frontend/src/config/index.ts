@@ -18,6 +18,9 @@ export const NOTIFICATIONS = {
   LOGIN_ERROR: "E-mail ou senha incorretos",
   GRID_SAVED: "Grade salva com sucesso",
   GRID_ERROR: "Erro ao salvar grade",
+  GRID_CREATED: "Grade criada com sucesso",
+  GRID_DELETED: "Grade excluída com sucesso",
+  GRID_DELETE_ERROR: "Erro ao excluir grade",
 } as const;
 
 

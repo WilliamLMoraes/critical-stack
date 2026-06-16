@@ -10,4 +10,6 @@ export default interface CampaignGridResponse {
   backgroundColor: string;
   showGrid: boolean;
   imageBackgroundUrl: string | null;
+  description: string | null;
+  showBackgroundImage: boolean;
 }

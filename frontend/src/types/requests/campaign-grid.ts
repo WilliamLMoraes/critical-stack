@@ -7,4 +7,6 @@ export default interface CampaignGridRequest {
   backgroundColor?: string;
   showGrid: boolean;
   imageBackgroundUrl?: string | null;
+  description?: string;
+  showBackgroundImage: boolean;
 }

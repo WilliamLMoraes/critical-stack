@@ -10,19 +10,72 @@ import type UpdateCampaignRequest from "../types/requests/update-campaign";
 import type CampaignsResponse from "../types/responses/campaigns";
 import type CampaignGridRequest from "../types/requests/campaign-grid";
 import type CampaignGridResponse from "../types/responses/campaign-grid";
+import type CampaignGridListItemResponse from "../types/responses/campaign-grid-list-item";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 
+let isRefreshing = false;
+let pendingRequests: Array<(token: string) => void> = [];
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("auth_token");
-  if (token) {
+  if (token && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error.response?.status;
+    if (status !== 401 && status !== 403) return Promise.reject(error);
+
+    const requestUrl = error.config?.url || "";
+    if (requestUrl.includes("/users/auth") || requestUrl.includes("/users/refresh")) {
+      return Promise.reject(error);
+    }
+
+    if (isRefreshing) {
+      return new Promise((resolve) => {
+        pendingRequests.push((token: string) => {
+          error.config.headers.Authorization = `Bearer ${token}`;
+          resolve(api(error.config));
+        });
+      });
+    }
+
+    isRefreshing = true;
+    const currentToken = localStorage.getItem("auth_token");
+
+    try {
+      const { data } = await api.post<AuthUserResponse>("/users/refresh", {
+        token: currentToken,
+      });
+
+      localStorage.setItem("auth_token", data.token);
+      const expiresAt = Date.now() + data.expiresIn * 1000;
+      localStorage.setItem("auth_token_expires_at", String(expiresAt));
+
+      pendingRequests.forEach((cb) => cb(data.token));
+      pendingRequests = [];
+
+      error.config.headers.Authorization = `Bearer ${data.token}`;
+      return api(error.config);
+    } catch {
+      pendingRequests = [];
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_token_expires_at");
+      window.location.href = "/login";
+      return Promise.reject(error);
+    } finally {
+      isRefreshing = false;
+    }
+  },
+);
 
 export function useApi() {
   const authenticateUser = useCallback(
@@ -51,16 +104,6 @@ export function useApi() {
       return null;
     }
   }, []);
-
-  const refreshToken =
-    useCallback(async (): Promise<AuthUserResponse | null> => {
-      try {
-        const { data } = await api.post<AuthUserResponse>("/users/refresh");
-        return data;
-      } catch {
-        return null;
-      }
-    }, []);
 
   const registerCampaign = useCallback(
     async (data: RegisterCampaignRequest): Promise<void> => {
@@ -123,16 +166,84 @@ export function useApi() {
     [],
   );
 
+  const getCampaignGrids = useCallback(
+    async (campaignId: number): Promise<CampaignGridListItemResponse[] | null> => {
+      try {
+        const { data } = await api.get<CampaignGridListItemResponse[]>(
+          `/campaigns/${campaignId}/grid`,
+        );
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
+  const getCampaignGridById = useCallback(
+    async (campaignId: number, gridId: number): Promise<CampaignGridResponse | null> => {
+      try {
+        const { data } = await api.get<CampaignGridResponse>(
+          `/campaigns/${campaignId}/grid/${gridId}`,
+        );
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
+  const createCampaignGrid = useCallback(
+    async (campaignId: number, data: CampaignGridRequest): Promise<boolean> => {
+      try {
+        await api.post(`/campaigns/${campaignId}/grid`, data);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [],
+  );
+
+  const updateCampaignGrid = useCallback(
+    async (campaignId: number, gridId: number, data: CampaignGridRequest): Promise<boolean> => {
+      try {
+        await api.put(`/campaigns/${campaignId}/grid/${gridId}`, data);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [],
+  );
+
+  const deleteCampaignGrid = useCallback(
+    async (campaignId: number, gridId: number): Promise<boolean> => {
+      try {
+        await api.delete(`/campaigns/${campaignId}/grid/${gridId}`);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [],
+  );
+
   return {
     authenticateUser,
     registerUser,
     user: getUser,
-    refreshToken,
     registerCampaign,
     getCampaigns,
     updateCampaign,
     deleteCampaign,
     getCampaignGrid,
     saveCampaignGrid,
+    getCampaignGrids,
+    getCampaignGridById,
+    createCampaignGrid,
+    updateCampaignGrid,
+    deleteCampaignGrid,
   };
 }
