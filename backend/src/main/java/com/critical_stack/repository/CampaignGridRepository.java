@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface CampaignGridRepository extends JpaRepository<CampaignGridDomain, Long> {
     List<CampaignGridDomain> findAllByCampaign(CampaignDomain campaign);
     List<CampaignGridDomain> findAllByFolder(CampaignFolderDomain folder);
+    boolean existsByFolderAndName(CampaignFolderDomain folder, String name);
 
     Optional<CampaignGridDomain> findFirstByCampaignOrderByUpdatedAtDesc(CampaignDomain campaign);
 }

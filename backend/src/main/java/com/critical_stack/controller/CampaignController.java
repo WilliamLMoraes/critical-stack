@@ -1,11 +1,16 @@
 package com.critical_stack.controller;
 
+import com.critical_stack.dto.campaign.request.AssignFolderRequest;
 import com.critical_stack.dto.campaign.request.CampaignGridRequest;
 import com.critical_stack.dto.campaign.request.CreateCampaignRequest;
+import com.critical_stack.dto.campaign.request.CreateFolderRequest;
 import com.critical_stack.dto.campaign.request.UpdateCampaignRequest;
-import com.critical_stack.dto.campaign.response.CampaignGridListResponse;
+import com.critical_stack.dto.campaign.request.UpdateFolderRequest;
 import com.critical_stack.dto.campaign.response.CampaignGridResponse;
+import com.critical_stack.dto.campaign.response.CampaignSearchResponse;
 import com.critical_stack.dto.campaign.response.CampaignsResponse;
+import com.critical_stack.dto.campaign.response.CampaignFolderResponse;
+import com.critical_stack.service.campaigns.CampaignFolderService;
 import com.critical_stack.service.campaigns.CampaignGridService;
 import com.critical_stack.service.campaigns.CampaignService;
 import jakarta.validation.Valid;
@@ -25,6 +30,7 @@ public class CampaignController {
 
     private final CampaignService campaignService;
     private final CampaignGridService campaignGridService;
+    private final CampaignFolderService campaignFolderService;
 
     @GetMapping
     public List<CampaignsResponse> getMyCampaigns() {
@@ -49,10 +55,12 @@ public class CampaignController {
         campaignService.deleteCampaign(id);
     }
 
-    @GetMapping("/{campaignId}/grid")
+    @GetMapping("/{campaignId}/search")
     @ResponseStatus(OK)
-    public List<CampaignGridListResponse> getAllGrids(@PathVariable Long campaignId) {
-        return campaignGridService.getAllGridsByCampaignId(campaignId);
+    public CampaignSearchResponse search(
+            @PathVariable Long campaignId,
+            @RequestParam(required = false) String q) {
+        return campaignFolderService.search(campaignId, q);
     }
 
     @GetMapping("/{campaignId}/grid/{gridId}")
@@ -78,4 +86,35 @@ public class CampaignController {
     public void deleteGrid(@PathVariable Long campaignId, @PathVariable Long gridId) {
         campaignGridService.deleteGrid(campaignId, gridId);
     }
+
+    @GetMapping("/{campaignId}/folder/{folderId}")
+    @ResponseStatus(OK)
+    public CampaignFolderResponse getFolder(@PathVariable Long campaignId, @PathVariable Long folderId) {
+        return campaignFolderService.getFolderById(campaignId, folderId);
+    }
+
+    @PostMapping("/{campaignId}/folder")
+    @ResponseStatus(CREATED)
+    public CampaignFolderResponse createFolder(@PathVariable Long campaignId, @Valid @RequestBody CreateFolderRequest request) {
+        return campaignFolderService.createFolder(campaignId, request);
+    }
+
+    @PutMapping("/{campaignId}/folder/{folderId}")
+    @ResponseStatus(OK)
+    public CampaignFolderResponse updateFolder(@PathVariable Long campaignId, @PathVariable Long folderId, @Valid @RequestBody UpdateFolderRequest request) {
+        return campaignFolderService.updateFolder(campaignId, folderId, request);
+    }
+
+    @DeleteMapping("/{campaignId}/folder/{folderId}")
+    @ResponseStatus(NO_CONTENT)
+    public void deleteFolder(@PathVariable Long campaignId, @PathVariable Long folderId) {
+        campaignFolderService.deleteFolder(campaignId, folderId);
+    }
+
+    @PostMapping("/{campaignId}/grid/{gridId}/assign-folder")
+    @ResponseStatus(NO_CONTENT)
+    public void assignGridToFolder(@PathVariable Long campaignId, @PathVariable Long gridId, @Valid @RequestBody AssignFolderRequest request) {
+        campaignFolderService.assignGridToFolder(campaignId, gridId, request.getFolderId());
+    }
+
 }

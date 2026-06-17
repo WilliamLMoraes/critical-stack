@@ -38,4 +38,6 @@ public class CampaignGridRequest {
     private String description;
 
     private Boolean showBackgroundImage;
+
+    private Long folderId;
 }

@@ -1,6 +1,7 @@
 package com.critical_stack.service.campaigns;
 
 import com.critical_stack.domain.CampaignDomain;
+import com.critical_stack.domain.CampaignFolderDomain;
 import com.critical_stack.domain.CampaignGridDomain;
 import com.critical_stack.domain.UserDomain;
 import com.critical_stack.dto.campaign.request.CreateCampaignRequest;
@@ -11,6 +12,7 @@ import com.critical_stack.exception.CampaignNotFoundException;
 import com.critical_stack.exception.UserNotFoundException;
 import com.critical_stack.mapper.campaign.CampaignsMapper;
 import com.critical_stack.mapper.campaign.UpdateCampaignMapper;
+import com.critical_stack.repository.CampaignFolderRepository;
 import com.critical_stack.repository.CampaignGridRepository;
 import com.critical_stack.repository.CampaignRepository;
 import com.critical_stack.service.user.UserService;
@@ -32,6 +34,7 @@ public class CampaignService {
     private final UserService userService;
     private final CampaignRepository campaignRepository;
     private final CampaignGridRepository campaignGridRepository;
+    private final CampaignFolderRepository campaignFolderRepository;
     private final CreateCampaignValidator createCampaignValidator;
     private final UpdateCampaignValidator updateCampaignValidator;
 
@@ -42,7 +45,12 @@ public class CampaignService {
         List<CampaignDomain> campaigns = campaignRepository.findAllByUserCreatorAndEnabled(user, true);
 
         return campaigns.stream()
-                .map(CampaignsMapper::toResponse)
+                .map(c -> {
+                    Long rootFolderId = campaignFolderRepository.findByCampaignAndParentIsNull(c)
+                            .map(CampaignFolderDomain::getId)
+                            .orElse(null);
+                    return CampaignsMapper.toResponse(c, rootFolderId);
+                })
                 .toList();
     }
 
@@ -58,6 +66,16 @@ public class CampaignService {
         campaignRepository.save(campaign);
 
         createDefaultGrid(campaign);
+        createRootFolder(campaign);
+    }
+
+    private void createRootFolder(CampaignDomain campaign) {
+        CampaignFolderDomain rootFolder = CampaignFolderDomain.builder()
+                .campaign(campaign)
+                .name("Raiz")
+                .build();
+
+        campaignFolderRepository.save(rootFolder);
     }
 
     private void createDefaultGrid(CampaignDomain campaign) {

@@ -16,4 +16,5 @@ public class CampaignsResponse {
     private String description;
     private String urlImage;
     private Boolean enabled;
+    private Long rootFolderId;
 }

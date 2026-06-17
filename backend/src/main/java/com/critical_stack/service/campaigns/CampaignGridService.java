@@ -1,15 +1,18 @@
 package com.critical_stack.service.campaigns;
 
 import com.critical_stack.domain.CampaignDomain;
+import com.critical_stack.domain.CampaignFolderDomain;
 import com.critical_stack.domain.CampaignGridDomain;
 import com.critical_stack.domain.UserDomain;
 import com.critical_stack.dto.campaign.request.CampaignGridRequest;
-import com.critical_stack.dto.campaign.response.CampaignGridListResponse;
 import com.critical_stack.dto.campaign.response.CampaignGridResponse;
+import com.critical_stack.exception.CampaignFolderNotFoundException;
 import com.critical_stack.exception.CampaignForbiddenException;
+import com.critical_stack.exception.CampaignGridNameAlreadyExistsException;
 import com.critical_stack.exception.CampaignGridNotFoundException;
 import com.critical_stack.exception.CampaignNotFoundException;
 import com.critical_stack.mapper.campaign.CampaignGridMapper;
+import com.critical_stack.repository.CampaignFolderRepository;
 import com.critical_stack.repository.CampaignGridRepository;
 import com.critical_stack.repository.CampaignRepository;
 import com.critical_stack.service.user.UserService;
@@ -27,24 +30,8 @@ public class CampaignGridService {
 
     private final CampaignRepository campaignRepository;
     private final CampaignGridRepository campaignGridRepository;
+    private final CampaignFolderRepository campaignFolderRepository;
     private final UserService userService;
-
-    @Transactional(readOnly = true)
-    public List<CampaignGridListResponse> getAllGridsByCampaignId(Long campaignId) {
-        UserDomain user = userService.getUserEntity();
-
-        CampaignDomain campaign = campaignRepository.findByIdAndEnabled(campaignId, true)
-                .orElseThrow(CampaignNotFoundException::new);
-
-        if (!campaign.getUserCreator().getId().equals(user.getId())) {
-            throw new CampaignForbiddenException();
-        }
-
-        return campaignGridRepository.findAllByCampaign(campaign)
-                .stream()
-                .map(CampaignGridMapper::toResponseList)
-                .toList();
-    }
 
     @Transactional(readOnly = true)
     public CampaignGridResponse getGridById(Long campaignId, Long gridId) {
@@ -81,6 +68,25 @@ public class CampaignGridService {
         CampaignGridDomain grid = toDomain(request);
         grid.setCampaign(campaign);
 
+        CampaignFolderDomain folder;
+        if (request.getFolderId() != null) {
+            folder = campaignFolderRepository.findById(request.getFolderId())
+                    .orElseThrow(CampaignFolderNotFoundException::new);
+        } else {
+            folder = campaignFolderRepository.findByCampaignAndParentIsNull(campaign)
+                    .orElseThrow(CampaignFolderNotFoundException::new);
+        }
+
+        if (!folder.getCampaign().getId().equals(campaignId)) {
+            throw new CampaignFolderNotFoundException();
+        }
+
+        if (campaignGridRepository.existsByFolderAndName(folder, request.getName())) {
+            throw new CampaignGridNameAlreadyExistsException();
+        }
+
+        grid.setFolder(folder);
+
         campaignGridRepository.save(grid);
     }
 
@@ -100,6 +106,10 @@ public class CampaignGridService {
 
         if (!grid.getCampaign().getId().equals(campaignId)) {
             throw new CampaignGridNotFoundException();
+        }
+
+        if (!grid.getName().equals(request.getName()) && campaignGridRepository.existsByFolderAndName(grid.getFolder(), request.getName())) {
+            throw new CampaignGridNameAlreadyExistsException();
         }
 
         merge(request, grid);

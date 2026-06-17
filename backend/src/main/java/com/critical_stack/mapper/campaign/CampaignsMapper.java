@@ -7,7 +7,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class CampaignsMapper {
 
-    public static CampaignsResponse toResponse(CampaignDomain response) {
+    public static CampaignsResponse toResponse(CampaignDomain response, Long rootFolderId) {
 
         return CampaignsResponse.builder()
                 .id(response.getId())
@@ -15,6 +15,7 @@ public class CampaignsMapper {
                 .name(response.getName())
                 .enabled(response.getEnabled())
                 .urlImage(response.getUrlImage())
+                .rootFolderId(rootFolderId)
                 .build();
     }
 }
