@@ -16,7 +16,6 @@ import com.critical_stack.repository.CampaignFolderRepository;
 import com.critical_stack.repository.CampaignGridRepository;
 import com.critical_stack.repository.CampaignRepository;
 import com.critical_stack.service.user.UserService;
-import com.critical_stack.validator.CreateCampaignValidator;
 import com.critical_stack.validator.UpdateCampaignValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,6 @@ public class CampaignService {
     private final CampaignRepository campaignRepository;
     private final CampaignGridRepository campaignGridRepository;
     private final CampaignFolderRepository campaignFolderRepository;
-    private final CreateCampaignValidator createCampaignValidator;
     private final UpdateCampaignValidator updateCampaignValidator;
 
     public List<CampaignsResponse> getCampaigns() {
@@ -57,31 +55,30 @@ public class CampaignService {
     @Transactional
     public void createCampaign(CreateCampaignRequest request) {
 
-        createCampaignValidator.validate(request);
-
         UserDomain user = userService.getUserEntity();
 
         CampaignDomain campaign = toEntity(request, user);
 
         campaignRepository.save(campaign);
 
-        createDefaultGrid(campaign);
-        createRootFolder(campaign);
+        CampaignFolderDomain rootFolder = createRootFolder(campaign);
+        createDefaultGrid(campaign, rootFolder);
     }
 
-    private void createRootFolder(CampaignDomain campaign) {
+    private CampaignFolderDomain createRootFolder(CampaignDomain campaign) {
         CampaignFolderDomain rootFolder = CampaignFolderDomain.builder()
                 .campaign(campaign)
                 .name("Raiz")
                 .build();
 
-        campaignFolderRepository.save(rootFolder);
+        return campaignFolderRepository.save(rootFolder);
     }
 
-    private void createDefaultGrid(CampaignDomain campaign) {
+    private void createDefaultGrid(CampaignDomain campaign, CampaignFolderDomain rootFolder) {
 
         CampaignGridDomain defaultGrid = CampaignGridDomain.builder()
                 .campaign(campaign)
+                .folder(rootFolder)
                 .name("Grid")
                 .width(20)
                 .height(20)
@@ -89,6 +86,7 @@ public class CampaignService {
                 .lineColor("#cccccc")
                 .backgroundColor("#1a1a1a")
                 .showGrid(true)
+                .showBackgroundImage(false)
                 .build();
 
         campaignGridRepository.save(defaultGrid);

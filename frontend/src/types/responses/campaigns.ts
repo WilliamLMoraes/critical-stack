@@ -4,4 +4,5 @@ export default interface CampaignsResponse {
   description: string;
   enabled: boolean;
   urlImage: string | null;
+  rootFolderId: number | null;
 }

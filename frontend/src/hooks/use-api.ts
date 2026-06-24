@@ -10,7 +10,10 @@ import type UpdateCampaignRequest from "../types/requests/update-campaign";
 import type CampaignsResponse from "../types/responses/campaigns";
 import type CampaignGridRequest from "../types/requests/campaign-grid";
 import type CampaignGridResponse from "../types/responses/campaign-grid";
-import type CampaignGridListItemResponse from "../types/responses/campaign-grid-list-item";
+import type CampaignSearchResponse from "../types/responses/campaign-search";
+import type CampaignFolderResponse from "../types/responses/campaign-folder";
+import type CreateFolderRequest from "../types/requests/create-folder";
+import type UpdateFolderRequest from "../types/requests/update-folder";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -137,49 +140,6 @@ export function useApi() {
     [],
   );
 
-  const getCampaignGrid = useCallback(
-    async (campaignId: number): Promise<CampaignGridResponse | null> => {
-      try {
-        const { data } = await api.get<CampaignGridResponse>(
-          `/campaigns/${campaignId}/grid`,
-        );
-        return data;
-      } catch {
-        return null;
-      }
-    },
-    [],
-  );
-
-  const saveCampaignGrid = useCallback(
-    async (campaignId: number, data: CampaignGridRequest): Promise<CampaignGridResponse | null> => {
-      try {
-        const { data: result } = await api.put<CampaignGridResponse>(
-          `/campaigns/${campaignId}/grid`,
-          data,
-        );
-        return result;
-      } catch {
-        return null;
-      }
-    },
-    [],
-  );
-
-  const getCampaignGrids = useCallback(
-    async (campaignId: number): Promise<CampaignGridListItemResponse[] | null> => {
-      try {
-        const { data } = await api.get<CampaignGridListItemResponse[]>(
-          `/campaigns/${campaignId}/grid`,
-        );
-        return data;
-      } catch {
-        return null;
-      }
-    },
-    [],
-  );
-
   const getCampaignGridById = useCallback(
     async (campaignId: number, gridId: number): Promise<CampaignGridResponse | null> => {
       try {
@@ -230,6 +190,89 @@ export function useApi() {
     [],
   );
 
+  const search = useCallback(
+    async (campaignId: number, q?: string): Promise<CampaignSearchResponse | null> => {
+      try {
+        const { data } = await api.get<CampaignSearchResponse>(
+          `/campaigns/${campaignId}/search`,
+          { params: { q } },
+        );
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
+  const getFolder = useCallback(
+    async (campaignId: number, folderId: number): Promise<CampaignFolderResponse | null> => {
+      try {
+        const { data } = await api.get<CampaignFolderResponse>(
+          `/campaigns/${campaignId}/folder/${folderId}`,
+        );
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
+  const createFolder = useCallback(
+    async (campaignId: number, data: CreateFolderRequest): Promise<CampaignFolderResponse | null> => {
+      try {
+        const { data: result } = await api.post<CampaignFolderResponse>(
+          `/campaigns/${campaignId}/folder`,
+          data,
+        );
+        return result;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
+  const updateFolder = useCallback(
+    async (campaignId: number, folderId: number, data: UpdateFolderRequest): Promise<CampaignFolderResponse | null> => {
+      try {
+        const { data: result } = await api.put<CampaignFolderResponse>(
+          `/campaigns/${campaignId}/folder/${folderId}`,
+          data,
+        );
+        return result;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
+  const deleteFolder = useCallback(
+    async (campaignId: number, folderId: number): Promise<boolean> => {
+      try {
+        await api.delete(`/campaigns/${campaignId}/folder/${folderId}`);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [],
+  );
+
+  const assignGridToFolder = useCallback(
+    async (campaignId: number, gridId: number, folderId: number): Promise<boolean> => {
+      try {
+        await api.post(`/campaigns/${campaignId}/grid/${gridId}/assign-folder`, { folderId });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [],
+  );
+
   return {
     authenticateUser,
     registerUser,
@@ -238,12 +281,15 @@ export function useApi() {
     getCampaigns,
     updateCampaign,
     deleteCampaign,
-    getCampaignGrid,
-    saveCampaignGrid,
-    getCampaignGrids,
     getCampaignGridById,
     createCampaignGrid,
     updateCampaignGrid,
     deleteCampaignGrid,
+    search,
+    getFolder,
+    createFolder,
+    updateFolder,
+    deleteFolder,
+    assignGridToFolder,
   };
 }

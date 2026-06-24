@@ -9,6 +9,7 @@ import {
   Texture,
   Assets,
 } from "pixi.js";
+import { getImageProxyUrl } from "../../../utils/image-proxy";
 import styles from "./style.module.css";
 
 extend({ Container, Graphics, Sprite, Texture });
@@ -63,7 +64,7 @@ export default function GridMap({ backgroundImage, tokens = [], onTokensChange, 
   useEffect(() => {
     if (backgroundImage) {
       const loadTexture = async () => {
-        const texture = await Assets.load(backgroundImage);
+        const texture = await Assets.load(getImageProxyUrl(backgroundImage));
         setBgTexture(texture);
       };
       loadTexture();
@@ -75,7 +76,7 @@ export default function GridMap({ backgroundImage, tokens = [], onTokensChange, 
       const textures: Record<string, Texture> = {};
       for (const token of tokens) {
         if (!tokenTextures[token.id]) {
-          textures[token.id] = await Assets.load(token.image);
+          textures[token.id] = await Assets.load(getImageProxyUrl(token.image));
         }
       }
       if (Object.keys(textures).length > 0) {
@@ -89,7 +90,7 @@ export default function GridMap({ backgroundImage, tokens = [], onTokensChange, 
     if (!mapRef.current) return;
 
     drawMap(mapRef.current, bgTexture, config);
-  }, [config]);
+  }, [config, bgTexture]);
 
   const handleWheel = useCallback(
     (e: WheelEvent) => {

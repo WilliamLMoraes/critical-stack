@@ -9,4 +9,5 @@ export default interface CampaignGridRequest {
   imageBackgroundUrl?: string | null;
   description?: string;
   showBackgroundImage: boolean;
+  folderId?: number | null;
 }
