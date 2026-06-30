@@ -9,6 +9,7 @@ import com.critical_stack.dto.campaign.response.CampaignFolderListResponse;
 import com.critical_stack.dto.campaign.response.CampaignFolderResponse;
 import com.critical_stack.dto.campaign.response.CampaignGridListResponse;
 import com.critical_stack.dto.campaign.response.CampaignSearchResponse;
+import com.critical_stack.exception.CampaignFolderCannotBeEmptyException;
 import com.critical_stack.exception.CampaignFolderNameAlreadyExistsException;
 import com.critical_stack.exception.CampaignFolderNotFoundException;
 import com.critical_stack.exception.CampaignGridNameAlreadyExistsException;
@@ -110,7 +111,31 @@ public class CampaignFolderService {
 
         campaignFolderRepository.save(folder);
 
-        return toResponse(folder, List.of(), List.of());
+        createDefaultGrid(folder, campaign);
+
+        List<CampaignGridListResponse> grids = campaignGridRepository.findAllByFolder(folder)
+                .stream()
+                .map(CampaignGridMapper::toResponseList)
+                .toList();
+
+        return toResponse(folder, grids, List.of());
+    }
+
+    private void createDefaultGrid(CampaignFolderDomain folder, CampaignDomain campaign) {
+        CampaignGridDomain defaultGrid = CampaignGridDomain.builder()
+                .campaign(campaign)
+                .folder(folder)
+                .name("Grid")
+                .width(20)
+                .height(20)
+                .cellSize(32)
+                .lineColor("#cccccc")
+                .backgroundColor("#1a1a1a")
+                .showGrid(true)
+                .showBackgroundImage(false)
+                .build();
+
+        campaignGridRepository.save(defaultGrid);
     }
 
     @Transactional
@@ -226,6 +251,11 @@ public class CampaignFolderService {
 
         if (campaignGridRepository.existsByFolderAndName(folder, grid.getName())) {
             throw new CampaignGridNameAlreadyExistsException();
+        }
+
+        CampaignFolderDomain sourceFolder = grid.getFolder();
+        if (sourceFolder != null && campaignGridRepository.countByFolder(sourceFolder) <= 1) {
+            throw new CampaignFolderCannotBeEmptyException();
         }
 
         grid.setFolder(folder);

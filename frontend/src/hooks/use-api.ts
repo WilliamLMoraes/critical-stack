@@ -179,12 +179,13 @@ export function useApi() {
   );
 
   const deleteCampaignGrid = useCallback(
-    async (campaignId: number, gridId: number): Promise<boolean> => {
+    async (campaignId: number, gridId: number): Promise<{ success: boolean; error?: string }> => {
       try {
         await api.delete(`/campaigns/${campaignId}/grid/${gridId}`);
-        return true;
-      } catch {
-        return false;
+        return { success: true };
+      } catch (err) {
+        const message = (err as any)?.response?.data?.message;
+        return { success: false, error: message };
       }
     },
     [],

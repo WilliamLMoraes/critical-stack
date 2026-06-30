@@ -6,6 +6,7 @@ import com.critical_stack.domain.CampaignGridDomain;
 import com.critical_stack.domain.UserDomain;
 import com.critical_stack.dto.campaign.request.CampaignGridRequest;
 import com.critical_stack.dto.campaign.response.CampaignGridResponse;
+import com.critical_stack.exception.CampaignFolderCannotBeEmptyException;
 import com.critical_stack.exception.CampaignFolderNotFoundException;
 import com.critical_stack.exception.CampaignForbiddenException;
 import com.critical_stack.exception.CampaignGridNameAlreadyExistsException;
@@ -133,6 +134,11 @@ public class CampaignGridService {
 
         if (!grid.getCampaign().getId().equals(campaignId)) {
             throw new CampaignGridNotFoundException();
+        }
+
+        CampaignFolderDomain folder = grid.getFolder();
+        if (campaignGridRepository.countByFolder(folder) <= 1) {
+            throw new CampaignFolderCannotBeEmptyException();
         }
 
         campaignGridRepository.delete(grid);

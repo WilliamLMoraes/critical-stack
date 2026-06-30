@@ -130,6 +130,10 @@ export default function GridMapPage() {
 
     if (folder) {
       setSelectedFolder(folder);
+
+      if (!selectedGrid && folder.grids && folder.grids.length > 0) {
+        await selectGrid(folder.grids[0].id);
+      }
     }
   };
 
@@ -293,7 +297,7 @@ export default function GridMapPage() {
   const handleDeleteGrid = async () => {
     if (!selectedGrid || !campaignId) return;
 
-    const success = await deleteCampaignGrid(
+    const { success, error } = await deleteCampaignGrid(
       Number(campaignId),
       selectedGrid.id,
     );
@@ -303,6 +307,8 @@ export default function GridMapPage() {
 
       if (selectedFolder) await selectFolder(selectedFolder.id);
       await loadSearch();
+    } else if (error) {
+      toast.error(error);
     } else {
       toast.error(NOTIFICATIONS.GRID_DELETE_ERROR);
     }
@@ -417,20 +423,19 @@ export default function GridMapPage() {
             <span className={styles.folderName}>{folder.name}</span>
             <span className={styles.folderCount}>({folder.gridCount})</span>
           </div>
-          {!isRoot && (
-            <div className={styles.folderActions}>
-              <button
-                className={styles.folderActionBtn}
-                title="Abrir menu"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setTopMenuOpen(true);
-                }}
-              >
-                <EyeIcon />
-              </button>
-            </div>
-          )}
+          <div className={styles.folderActions}>
+            <button
+              className={styles.folderActionBtn}
+              title="Abrir menu"
+              onClick={async (e) => {
+                e.stopPropagation();
+                await selectFolder(folder.id);
+                setTopMenuOpen(true);
+              }}
+            >
+              <EyeIcon />
+            </button>
+          </div>
           {children.length > 0 && (
             <button
               className={styles.folderChevron}
@@ -684,7 +689,9 @@ export default function GridMapPage() {
             }}
           >
             {selectedFolder
-              ? "Nenhuma grade nesta pasta. Crie uma nova grade."
+              ? selectedFolder.grids && selectedFolder.grids.length > 0
+                ? "Selecione uma grade no carrossel acima."
+                : "Nenhuma grade nesta pasta. Crie uma nova grade."
               : "Selecione uma pasta para começar."}
           </div>
         </div>

@@ -21,6 +21,7 @@ export const NOTIFICATIONS = {
   GRID_CREATED: "Grade criada com sucesso",
   GRID_DELETED: "Grade excluída com sucesso",
   GRID_DELETE_ERROR: "Erro ao excluir grade",
+  GRID_DELETE_FOLDER_EMPTY: "A pasta não pode ficar vazia. É necessário ter ao menos uma grade.",
   FOLDER_CREATED: "Pasta criada com sucesso",
   FOLDER_UPDATED: "Pasta atualizada com sucesso",
   FOLDER_DELETED: "Pasta excluída com sucesso",

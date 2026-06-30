@@ -15,4 +15,6 @@ public interface CampaignGridRepository extends JpaRepository<CampaignGridDomain
     boolean existsByFolderAndName(CampaignFolderDomain folder, String name);
 
     Optional<CampaignGridDomain> findFirstByCampaignOrderByUpdatedAtDesc(CampaignDomain campaign);
+
+    long countByFolder(CampaignFolderDomain folder);
 }
