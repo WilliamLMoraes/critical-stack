@@ -1,5 +1,6 @@
 package com.critical_stack.dto.campaign.response;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,6 @@ public class CampaignsResponse {
     private String urlImage;
     private Boolean enabled;
     private Long rootFolderId;
+    private String owner;
+    private LocalDateTime createdAt;
 }

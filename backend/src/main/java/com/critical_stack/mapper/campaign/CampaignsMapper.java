@@ -16,6 +16,8 @@ public class CampaignsMapper {
                 .enabled(response.getEnabled())
                 .urlImage(response.getUrlImage())
                 .rootFolderId(rootFolderId)
+                .owner(response.getUserCreator().getUsername())
+                .createdAt(response.getCreatedAt())
                 .build();
     }
 }

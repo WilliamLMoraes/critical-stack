@@ -5,8 +5,8 @@ import GameCard from "../../components/game-card";
 import Modal from "../../components/modal";
 import ConfirmDialog from "../../components/confirm-dialog";
 import { useNavigate } from "react-router";
-import Container from "../../components/container";
 import { useApi } from "../../../hooks/use-api";
+import { GiDiceTwentyFacesTwenty } from "react-icons/gi";
 import type CampaignsResponse from "../../../types/responses/campaigns";
 
 export default function HomePage() {
@@ -23,6 +23,8 @@ export default function HomePage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteTarget, setDeleteTarget] =
+    useState<CampaignsResponse | null>(null);
+  const [viewingCampaign, setViewingCampaign] =
     useState<CampaignsResponse | null>(null);
   const [form, setForm] = useState({ name: "", description: "", urlImage: "" });
 
@@ -94,6 +96,9 @@ export default function HomePage() {
     try {
       await deleteCampaign(deleteTarget.id);
       setDeleteTarget(null);
+      setEditModalOpen(false);
+      setEditingCampaign(null);
+      setForm({ name: "", description: "", urlImage: "" });
       await loadCampaigns();
     } finally {
       setDeleting(false);
@@ -101,41 +106,42 @@ export default function HomePage() {
   }, [deleteTarget, deleteCampaign, loadCampaigns]);
 
   return (
-    <Container>
+    <>
       <div className={Styles.main__content}>
         <main>
-          <div className={Styles.page}>
-            <section>
-              <div className={Styles.page__header}>
+          <section>
+            <div className={Styles.page__header}>
+              <div>
                 <h1>Minhas Mesas:</h1>
-                <div>
-                  <Button onClick={() => setCreateModalOpen(true)}>Criar Mesa</Button>
-                </div>
+                <p className={Styles.page__subtitle}>Gerencie suas campanhas de RPG</p>
               </div>
-            </section>
-            <section>
-              <div className={Styles.page__cards}>
-                {loading ? (
-                  <p>Carregando...</p>
-                ) : campaigns.length === 0 ? (
-                  <p>Nenhuma mesa encontrada. Crie uma nova mesa!</p>
-                ) : (
-                  campaigns.map((campaign) => (
-                    <GameCard
-                      key={campaign.id}
-                      title={campaign.name}
-                      description={campaign.description}
-                      imageUrl={campaign.urlImage ?? undefined}
-                      variant="featured"
-                      onPlay={() => navigate(`/map/${campaign.id}`)}
-                      onEdit={() => openEdit(campaign)}
-                      onDelete={() => handleDelete(campaign)}
-                    />
-                  ))
-                )}
+              <div>
+                <Button onClick={() => { setForm({ name: "", description: "", urlImage: "" }); setCreateModalOpen(true); }}>Criar Mesa</Button>
               </div>
-            </section>
-          </div>
+            </div>
+          </section>
+          <section>
+            <div className={Styles.page__cards}>
+              {loading ? (
+                <p>Carregando...</p>
+              ) : campaigns.length === 0 ? (
+                <p>Nenhuma mesa encontrada. Crie uma nova mesa!</p>
+              ) : (
+                campaigns.map((campaign) => (
+                  <GameCard
+                    key={campaign.id}
+                    title={campaign.name}
+                    description={campaign.description}
+                    imageUrl={campaign.urlImage ?? undefined}
+                    owner={campaign.owner}
+                    variant="featured"
+                    onPlay={() => setViewingCampaign(campaign)}
+                    onEdit={() => openEdit(campaign)}
+                  />
+                ))
+              )}
+            </div>
+          </section>
         </main>
 
         <footer className={Styles.footer}>
@@ -153,6 +159,7 @@ export default function HomePage() {
         title="Criar Nova Mesa"
         closeOnOutsideClick={true}
         draggable={false}
+        size="medium"
       >
         <form
           onSubmit={(e) => {
@@ -192,12 +199,8 @@ export default function HomePage() {
             }
             maxLength={512}
           />
-          <div
-            style={{
-              display: "flex",
-              gap: "0.5rem",
-              justifyContent: "flex-end",
-            }}
+          <div className={Styles.modalActions}
+            style={{ justifyContent: "flex-end" }}
           >
             <Button variant="secondary" onClick={() => setCreateModalOpen(false)}>
               Cancelar
@@ -209,23 +212,13 @@ export default function HomePage() {
         </form>
       </Modal>
 
-      <ConfirmDialog
-        isOpen={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        title="Excluir Mesa"
-        message={`Tem certeza que deseja excluir a mesa "${deleteTarget?.name}"?`}
-        confirmLabel="Excluir"
-        cancelLabel="Cancelar"
-        loading={deleting}
-      />
-
       <Modal
         isOpen={editModalOpen}
         toggleModal={setEditModalOpen}
         title="Editar Mesa"
         closeOnOutsideClick={true}
         draggable={false}
+        size="medium"
       >
         <form
           onSubmit={(e) => {
@@ -265,22 +258,103 @@ export default function HomePage() {
             }
             maxLength={512}
           />
-          <div
-            style={{
-              display: "flex",
-              gap: "0.5rem",
-              justifyContent: "flex-end",
-            }}
+          <div className={Styles.modalActions}
+            style={{ justifyContent: "space-between" }}
           >
-            <Button variant="secondary" onClick={() => setEditModalOpen(false)}>
-              Cancelar
+            <Button
+              variant="secondary"
+              onClick={() => editingCampaign && handleDelete(editingCampaign)}
+            >
+              Excluir
             </Button>
-            <Button type="submit" loading={saving}>
-              Salvar
-            </Button>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <Button variant="secondary" onClick={() => setEditModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" loading={saving}>
+                Salvar
+              </Button>
+            </div>
           </div>
         </form>
       </Modal>
-    </Container>
+
+      <Modal
+        isOpen={!!viewingCampaign}
+        toggleModal={() => setViewingCampaign(null)}
+        title={viewingCampaign?.name || ""}
+        closeOnOutsideClick={true}
+        draggable={false}
+        size="large"
+      >
+        {viewingCampaign && (
+          <div className={Styles.viewContent}>
+            <div className={Styles.viewImageWrapper}>
+              {viewingCampaign.urlImage ? (
+                <img
+                  src={viewingCampaign.urlImage}
+                  alt={viewingCampaign.name}
+                  className={Styles.viewImage}
+                />
+              ) : (
+                <div className={Styles.viewPlaceholder}>
+                  <GiDiceTwentyFacesTwenty className={Styles.viewPlaceholderIcon} />
+                </div>
+              )}
+            </div>
+            <div className={Styles.viewBody}>
+              <div className={Styles.viewField}>
+                <span className={Styles.viewLabel}>Descrição:</span>
+                <p className={Styles.viewDescription}>{viewingCampaign.description}</p>
+              </div>
+              {viewingCampaign.owner && (
+                <div className={Styles.viewField}>
+                  <span className={Styles.viewLabel}>Owner:</span>
+                  <p className={Styles.viewOwner}>{viewingCampaign.owner}</p>
+                </div>
+              )}
+              {viewingCampaign.createdAt && (
+                <div className={Styles.viewField}>
+                  <span className={Styles.viewLabel}>Criada em:</span>
+                  <p className={Styles.viewOwner}>{new Date(viewingCampaign.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
+                </div>
+              )}
+            </div>
+            <div className={Styles.viewActions}>
+              <Button
+                variant="primary"
+                size="large"
+                onClick={() => navigate(`/map/${viewingCampaign.id}`)}
+                className={Styles.viewPlayButton}
+              >
+                Play
+              </Button>
+              <Button
+                variant="secondary"
+                size="large"
+                onClick={() => {
+                  setViewingCampaign(null);
+                  openEdit(viewingCampaign);
+                }}
+                className={Styles.viewEditButton}
+              >
+                Editar
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title="Excluir Mesa"
+        message={`Tem certeza que deseja excluir a mesa "${deleteTarget?.name}"?`}
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        loading={deleting}
+      />
+    </>
   );
 }

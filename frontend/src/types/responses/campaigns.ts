@@ -5,4 +5,6 @@ export default interface CampaignsResponse {
   enabled: boolean;
   urlImage: string | null;
   rootFolderId: number | null;
+  owner?: string;
+  createdAt?: string;
 }

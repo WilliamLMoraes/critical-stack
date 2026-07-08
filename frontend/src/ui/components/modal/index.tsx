@@ -10,6 +10,7 @@ type ModalProps = {
   draggable?: boolean;
   title?: string;
   className?: string;
+  size?: "small" | "medium" | "large";
 };
 
 /*
@@ -32,6 +33,7 @@ export default function Modal({
   draggable = true,
   title = "",
   className = "",
+  size = "small",
 }: ModalProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -107,7 +109,7 @@ export default function Modal({
   const modalContent = (
     <div
       ref={modalRef}
-      className={`${styles.modal} ${draggable ? styles.draggable : ""} ${animating ? styles.animating : ""} ${closeOnOutsideClick ? styles.inOverlay : ""} ${className}`}
+      className={`${styles.modal} ${styles[size]} ${draggable ? styles.draggable : ""} ${animating ? styles.animating : ""} ${closeOnOutsideClick ? styles.inOverlay : ""} ${className}`}
       style={closeOnOutsideClick ? undefined : {
         transform: `translate(${position.x}px, ${position.y}px)`,
         cursor: isDragging ? "grabbing" : "default",

@@ -1,6 +1,6 @@
 :root {
   /* === TIPOGRAFIA === */
-  font-family: "Poppins", helvetica, arial, sans-serif;
+  font-family: "Nunito", sans-serif;
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
@@ -12,6 +12,7 @@
   --color-primary: #00BFFF;
   --color-primary-light: #66D9FF;
   --color-primary-dark: #0099CC;
+  --color-primary-darknes: #036F93;
   
   /* === ESCALA DE CINZAS === */
   --color-white: #FFFFFF;
