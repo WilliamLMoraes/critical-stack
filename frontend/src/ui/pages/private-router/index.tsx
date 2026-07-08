@@ -30,7 +30,7 @@ const PrivateRoute = () => {
   const handleLogout = () => {
     setIsMenuOpen(false);
     logout();
-    navigate(ROUTES.LOGIN);
+    navigate(ROUTES.LANDING);
   };
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const PrivateRoute = () => {
   }, []);
 
   if (!token) {
-    return <Navigate to={ROUTES.LOGIN} replace />;
+    return <Navigate to={ROUTES.LANDING} replace />;
   }
 
   if (!authChecked) {

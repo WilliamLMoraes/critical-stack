@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import { Toaster } from "react-hot-toast";
 
 import { AuthProvider } from "./contexts/auth-context";
+import LandingPage from "./ui/pages/landing";
 import HomePage from "./ui/pages/home";
 import GridMap from "./ui/pages/grid-map";
 import LoginPage from "./ui/pages/login";
@@ -15,9 +16,10 @@ createRoot(document.getElementById("root")!).render(
   <AuthProvider>
     <BrowserRouter>
       <Routes>
+        <Route path={ROUTES.LANDING} element={<LandingPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-        <Route path={ROUTES.WILDCARD} element={<PrivateRoute />}>
+        <Route path={ROUTES.APP} element={<PrivateRoute />}>
           <Route path="" element={<HomePage />} />
           <Route path="map/:campaignId" element={<GridMap />} />
         </Route>

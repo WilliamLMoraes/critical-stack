@@ -26,6 +26,7 @@ export { default as CardContainer } from "./ui/components/card-container";
 export { default as Form } from "./ui/components/form";
 export { default as LogoComponent } from "./ui/components/logo-component";
 
+export { default as LandingPage } from "./ui/pages/landing";
 export { default as HomePage } from "./ui/pages/home";
 export { default as GridMap } from "./ui/pages/grid-map";
 export { default as LoginPage } from "./ui/pages/login";

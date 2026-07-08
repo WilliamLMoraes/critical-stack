@@ -406,7 +406,6 @@ export default function GridMapPage() {
   ) => {
     const children = allFolders.filter((f) => f.parentId === folder.id);
     const isSelected = selectedFolder?.id === folder.id;
-    const isRoot = folder.parentId === null;
     const isCollapsed = collapsedFolders.has(folder.id);
 
     return (

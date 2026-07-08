@@ -324,7 +324,7 @@ export default function HomePage() {
               <Button
                 variant="primary"
                 size="large"
-                onClick={() => navigate(`/map/${viewingCampaign.id}`)}
+                onClick={() => navigate(`/app/map/${viewingCampaign.id}`)}
                 className={Styles.viewPlayButton}
               >
                 Play

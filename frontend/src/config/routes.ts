@@ -1,8 +1,10 @@
 export const ROUTES = {
+  LANDING: "/",
   LOGIN: "/login",
   REGISTER: "/register",
-  MAP: "/map",
-  MAP_CAMPAIGN: "/map/:campaignId",
-  HOME: "/",
-  WILDCARD: "/*",
+  HOME: "/app",
+  APP: "/app",
+  MAP: "/app/map",
+  MAP_CAMPAIGN: "/app/map/:campaignId",
+  APP_WILDCARD: "/app/*",
 } as const;

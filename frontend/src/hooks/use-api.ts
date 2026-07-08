@@ -72,7 +72,7 @@ api.interceptors.response.use(
       pendingRequests = [];
       localStorage.removeItem("auth_token");
       localStorage.removeItem("auth_token_expires_at");
-      window.location.href = "/login";
+      window.location.href = "/";
       return Promise.reject(error);
     } finally {
       isRefreshing = false;
