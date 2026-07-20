@@ -1,4 +1,4 @@
-export { ROUTES } from "./routes";
+export { ROUTES, APP_ROUTES } from "./routes";
 
 export {
   TOKEN_KEY,

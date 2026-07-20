@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import { Button, ROUTES, useAuth } from "../../../index";
+import { SparklesIcon } from "../../icons";
 import styles from "./style.module.css";
 
 export default function LandingPage() {
@@ -21,14 +22,14 @@ export default function LandingPage() {
       <div className={styles.content}>
         <div className={styles.left}>
           <div className={styles.badge}>
-            <div className={styles.badgeDot} />
+            <SparklesIcon size={16} color="var(--color-primary-darknes)" />
             NOVO SISTEMA VTT
           </div>
 
           <h1 className={styles.title}>
             Crie e participe de<br />
-            campanhas de RPG de<br />
-            maneira <span className={styles.highlight}>fácil e rápida.</span>
+            campanhas de RPG de maneira 
+            <span className={styles.highlight}> fácil e rápida.</span>
           </h1>
 
           <p className={styles.subtitle}>

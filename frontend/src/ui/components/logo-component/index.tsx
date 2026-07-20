@@ -5,7 +5,7 @@ export default function LogoComponent() {
     <div style={{ display: "flex", alignItems: "center", gap: "8px", maxHeight: "40px"}}>
       <img
         src={logoPath}
-        style={{ width: "32px", height: "32px" }}
+        style={{ width: "40px", height: "40px" }}
         alt="Logo"
       />
       <span style={{ fontSize: "20px", fontWeight: "bold", color: "#1f2937" }}>

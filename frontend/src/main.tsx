@@ -10,7 +10,12 @@ import GridMap from "./ui/pages/grid-map";
 import LoginPage from "./ui/pages/login";
 import RegisterPage from "./ui/pages/register";
 import PrivateRoute from "./ui/pages/private-router";
-import { ROUTES } from "./config";
+import CharactersPage from "./ui/pages/characters";
+import LibraryPage from "./ui/pages/library";
+import CommunityPage from "./ui/pages/community";
+import SettingsPage from "./ui/pages/settings";
+import ProfilePage from "./ui/pages/profile";
+import { ROUTES, APP_ROUTES } from "./config";
 
 createRoot(document.getElementById("root")!).render(
   <AuthProvider>
@@ -20,8 +25,13 @@ createRoot(document.getElementById("root")!).render(
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.APP} element={<PrivateRoute />}>
-          <Route path="" element={<HomePage />} />
-          <Route path="map/:campaignId" element={<GridMap />} />
+          <Route path={APP_ROUTES.HOME} element={<HomePage />} />
+          <Route path={APP_ROUTES.CHARACTERS} element={<CharactersPage />} />
+          <Route path={APP_ROUTES.LIBRARY} element={<LibraryPage />} />
+          <Route path={APP_ROUTES.COMMUNITY} element={<CommunityPage />} />
+          <Route path={APP_ROUTES.SETTINGS} element={<SettingsPage />} />
+          <Route path={APP_ROUTES.PROFILE} element={<ProfilePage />} />
+          <Route path={APP_ROUTES.MAP} element={<GridMap />} />
         </Route>
       </Routes>
     </BrowserRouter>

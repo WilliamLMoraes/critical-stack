@@ -1,62 +1,35 @@
 import Styles from "./style.module.css";
-import { useEffect, useRef, useState } from "react";
-import {
-  useAuth,
-  useApi,
-  LogoComponent,
-  ROUTES,
-} from "../../../index";
-import { useLocation, Navigate, Outlet, useNavigate } from "react-router";
-import { BiSolidUserCircle } from "react-icons/bi";
+import { useEffect, useState } from "react";
+import { useAuth, useApi, ROUTES } from "../../../index";
+import { useLocation, Navigate, Outlet } from "react-router";
+import Sidebar from "../../components/sidebar";
+import D20Roller from "../../components/d20-roller";
 
 const PrivateRoute = () => {
-  const { logout, token } = useAuth();
+  const { token } = useAuth();
   const { user } = useApi();
-  const [userLogged, setUserLogged] = useState<{
-    username: string;
-    email: string;
-  } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const hideHeaderRoutes = [ROUTES.MAP];
-  const shouldHideHeader = (hideHeaderRoutes as string[]).some((route) =>
+  const hideLayoutRoutes = [ROUTES.MAP];
+  const shouldHideLayout = (hideLayoutRoutes as string[]).some((route) =>
     location.pathname.startsWith(route + "/"),
   );
 
-  const handleLogout = () => {
-    setIsMenuOpen(false);
-    logout();
-    navigate(ROUTES.LANDING);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const hideD20Routes: string[] = [];
+  const shouldShowD20 = !(hideD20Routes as string[]).some((route) =>
+    location.pathname.startsWith(route + "/"),
+  );
 
   useEffect(() => {
     const loadUser = async () => {
-      const result = await user();
-      if (result) {
-        setUserLogged(result);
+      if (token) {
+        await user();
       }
       setAuthChecked(true);
     };
 
-    if (token) {
-      loadUser();
-    } else {
-      setAuthChecked(true);
-    }
+    loadUser();
   }, []);
 
   if (!token) {
@@ -80,49 +53,23 @@ const PrivateRoute = () => {
 
   return (
     <>
-      {!shouldHideHeader && (
-        <header className={Styles.header}>
-          <div className={Styles.headerInner}>
-            <div className={Styles.headerContent}>
-              <button
-                className={Styles.logoButton}
-                onClick={() => navigate(ROUTES.HOME)}
-              >
-                <LogoComponent />
-              </button>
-              <div className={Styles.headerRight} ref={dropdownRef}>
-                <button
-                  className={`${Styles.userButton} ${isMenuOpen ? Styles.userButtonActive : ""}`}
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                >
-                  <span className={Styles.username}>
-                    {userLogged?.username || "Carregando..."}
-                  </span>
-                  <div className={`${Styles.avatar} ${isMenuOpen ? Styles.avatarActive : ""}`}>
-                    <BiSolidUserCircle className={Styles.avatarIcon} />
-                  </div>
-                </button>
-                {isMenuOpen && (
-                  <div className={Styles.dropdown}>
-                    <button
-                      onClick={handleLogout}
-                      className={Styles.dropdownItem}
-                    >
-                      Sair
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
-      )}
-      <div className={Styles.space}></div>
+      {!shouldHideLayout && <Sidebar />}
       {authChecked && (
-        <div className={Styles.pageContainer}>
+        <div
+          className={Styles.pageContainer}
+          style={!shouldHideLayout ? { marginLeft: 256 } : undefined}
+        >
           <Outlet />
+          {!shouldHideLayout && (
+            <footer className={Styles.footer}>
+              <div className={Styles.footer__container}>
+                <p>© 2026 Critical Stack</p>
+              </div>
+            </footer>
+          )}
         </div>
       )}
+      <D20Roller show={shouldShowD20} />
     </>
   );
 };

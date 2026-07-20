@@ -4,6 +4,7 @@ import Button from "../../components/button";
 import GameCard from "../../components/game-card";
 import Modal from "../../components/modal";
 import ConfirmDialog from "../../components/confirm-dialog";
+import PageHeader from "../../components/page-header";
 import { useNavigate } from "react-router";
 import { useApi } from "../../../hooks/use-api";
 import { GiDiceTwentyFacesTwenty } from "react-icons/gi";
@@ -111,13 +112,15 @@ export default function HomePage() {
         <main>
           <section>
             <div className={Styles.page__header}>
-              <div>
-                <h1>Minhas Mesas:</h1>
-                <p className={Styles.page__subtitle}>Gerencie suas campanhas de RPG</p>
-              </div>
-              <div>
-                <Button onClick={() => { setForm({ name: "", description: "", urlImage: "" }); setCreateModalOpen(true); }}>Criar Mesa</Button>
-              </div>
+              <PageHeader
+                title="Minhas Campanhas"
+                description="Crie ou participe de uma campanha"
+                onSearch={(query) => console.log(query)}
+                searchPlaceholder="Procurar campanhas..."
+              />
+            </div>
+            <div className={Styles.page__actions}>
+              <Button onClick={() => { setForm({ name: "", description: "", urlImage: "" }); setCreateModalOpen(true); }}>Nova Campanha</Button>
             </div>
           </section>
           <section>
@@ -143,14 +146,6 @@ export default function HomePage() {
             </div>
           </section>
         </main>
-
-        <footer className={Styles.footer}>
-          <div>
-            <div className={Styles.footer__container}>
-              <p>Critical Stack - 2026</p>
-            </div>
-          </div>
-        </footer>
       </div>
 
       <Modal
