@@ -7,24 +7,26 @@ import com.critical_stack.domain.UserDomain;
 import com.critical_stack.dto.campaign.request.CreateCampaignRequest;
 import com.critical_stack.dto.campaign.request.UpdateCampaignRequest;
 import com.critical_stack.dto.campaign.response.CampaignsResponse;
+import com.critical_stack.dto.common.PaginatedResponse;
 import com.critical_stack.exception.CampaignForbiddenException;
 import com.critical_stack.exception.CampaignNotFoundException;
-import com.critical_stack.exception.UserNotFoundException;
-import com.critical_stack.mapper.campaign.CampaignsMapper;
-import com.critical_stack.mapper.campaign.UpdateCampaignMapper;
 import com.critical_stack.repository.CampaignFolderRepository;
 import com.critical_stack.repository.CampaignGridRepository;
 import com.critical_stack.repository.CampaignRepository;
 import com.critical_stack.service.user.UserService;
 import com.critical_stack.validator.UpdateCampaignValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
+import static com.critical_stack.mapper.campaign.CampaignsMapper.toResponse;
 import static com.critical_stack.mapper.campaign.CreateCampaignMapper.toEntity;
 import static com.critical_stack.mapper.campaign.UpdateCampaignMapper.toEntity;
+import static com.critical_stack.mapper.common.PaginatedMapper.toPaginatedResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -36,20 +38,21 @@ public class CampaignService {
     private final CampaignFolderRepository campaignFolderRepository;
     private final UpdateCampaignValidator updateCampaignValidator;
 
-    public List<CampaignsResponse> getCampaigns() {
+    public PaginatedResponse<CampaignsResponse> getCampaigns(String query, int page, int size) {
 
         UserDomain user = userService.getUserEntity();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        List<CampaignDomain> campaigns = campaignRepository.findAllByUserCreatorAndEnabled(user, true);
+        Page<CampaignDomain> campaignPage = (query != null && !query.isBlank())
+                ? campaignRepository.searchByUser(user, query, pageable)
+                : campaignRepository.findAllByUserCreatorAndEnabled(user, true, pageable);
 
-        return campaigns.stream()
-                .map(c -> {
-                    Long rootFolderId = campaignFolderRepository.findByCampaignAndParentIsNull(c)
-                            .map(CampaignFolderDomain::getId)
-                            .orElse(null);
-                    return CampaignsMapper.toResponse(c, rootFolderId);
-                })
-                .toList();
+        return toPaginatedResponse(campaignPage, c -> {
+            Long rootFolderId = campaignFolderRepository.findByCampaignAndParentIsNull(c)
+                    .map(CampaignFolderDomain::getId)
+                    .orElse(null);
+            return toResponse(c, rootFolderId);
+        });
     }
 
     @Transactional

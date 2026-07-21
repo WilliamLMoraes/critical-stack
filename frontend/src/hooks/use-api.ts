@@ -8,6 +8,7 @@ import type LoggedUserResponse from "../types/responses/logged-user";
 import type RegisterCampaignRequest from "../types/requests/register-campaign";
 import type UpdateCampaignRequest from "../types/requests/update-campaign";
 import type CampaignsResponse from "../types/responses/campaigns";
+import type PaginatedResponse from "../types/responses/paginated";
 import type CampaignGridRequest from "../types/requests/campaign-grid";
 import type CampaignGridResponse from "../types/responses/campaign-grid";
 import type CampaignSearchResponse from "../types/responses/campaign-search";
@@ -115,16 +116,22 @@ export function useApi() {
     [],
   );
 
-  const getCampaigns = useCallback(async (): Promise<
-    CampaignsResponse[] | null
-  > => {
-    try {
-      const { data } = await api.get<CampaignsResponse[]>("/campaigns");
-      return data;
-    } catch {
-      return null;
-    }
-  }, []);
+  const getCampaigns = useCallback(
+    async (params?: { q?: string; page?: number; size?: number }): Promise<
+      PaginatedResponse<CampaignsResponse> | null
+    > => {
+      try {
+        const { data } = await api.get<PaginatedResponse<CampaignsResponse>>(
+          "/campaigns",
+          { params },
+        );
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
 
   const updateCampaign = useCallback(
     async (id: number, data: UpdateCampaignRequest): Promise<void> => {

@@ -137,3 +137,22 @@
   display: flex;
   flex-direction: column;
 }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-md) 0;
+}
+
+.paginationInfo {
+  font-size: var(--size-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.pagination button:disabled {
+  cursor: default;
+}

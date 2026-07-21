@@ -10,6 +10,7 @@ import com.critical_stack.dto.campaign.response.CampaignGridResponse;
 import com.critical_stack.dto.campaign.response.CampaignSearchResponse;
 import com.critical_stack.dto.campaign.response.CampaignsResponse;
 import com.critical_stack.dto.campaign.response.CampaignFolderResponse;
+import com.critical_stack.dto.common.PaginatedResponse;
 import com.critical_stack.service.campaigns.CampaignFolderService;
 import com.critical_stack.service.campaigns.CampaignGridService;
 import com.critical_stack.service.campaigns.CampaignService;
@@ -33,8 +34,11 @@ public class CampaignController {
     private final CampaignFolderService campaignFolderService;
 
     @GetMapping
-    public List<CampaignsResponse> getMyCampaigns() {
-        return campaignService.getCampaigns();
+    public PaginatedResponse<CampaignsResponse> getMyCampaigns(
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) {
+        return campaignService.getCampaigns(q, page, size);
     }
 
     @PostMapping

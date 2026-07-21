@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Styles from "./style.module.css";
 import Button from "../../components/button";
 import GameCard from "../../components/game-card";
@@ -9,12 +9,16 @@ import { useNavigate } from "react-router";
 import { useApi } from "../../../hooks/use-api";
 import { GiDiceTwentyFacesTwenty } from "react-icons/gi";
 import type CampaignsResponse from "../../../types/responses/campaigns";
+import type PaginatedResponse from "../../../types/responses/paginated";
+
+const PAGE_SIZE = 6;
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { getCampaigns, registerCampaign, updateCampaign, deleteCampaign } =
     useApi();
   const [campaigns, setCampaigns] = useState<CampaignsResponse[]>([]);
+  const [pagination, setPagination] = useState<Omit<PaginatedResponse<CampaignsResponse>, "content"> | null>(null);
   const [loading, setLoading] = useState(true);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -28,17 +32,36 @@ export default function HomePage() {
   const [viewingCampaign, setViewingCampaign] =
     useState<CampaignsResponse | null>(null);
   const [form, setForm] = useState({ name: "", description: "", urlImage: "" });
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadCampaigns = useCallback(async () => {
+  const loadCampaigns = useCallback(async (q?: string, page?: number) => {
     setLoading(true);
-    const data = await getCampaigns();
-    if (data) setCampaigns(data);
+    const data = await getCampaigns({
+      q: q || undefined,
+      page: page ?? 0,
+      size: PAGE_SIZE,
+    });
+    if (data) {
+      setCampaigns(data.content);
+      const { content: _, ...paginationData } = data;
+      setPagination(paginationData);
+    }
     setLoading(false);
   }, [getCampaigns]);
 
   useEffect(() => {
-    loadCampaigns();
-  }, [loadCampaigns]);
+    loadCampaigns(debouncedQuery, currentPage);
+  }, [currentPage, debouncedQuery, loadCampaigns]);
+
+  const handleSearch = useCallback((query: string) => {
+    setCurrentPage(0);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 400);
+  }, []);
 
   const handleCreate = useCallback(async () => {
     setCreating(true);
@@ -115,7 +138,7 @@ export default function HomePage() {
               <PageHeader
                 title="Minhas Campanhas"
                 description="Crie ou participe de uma campanha"
-                onSearch={(query) => console.log(query)}
+                onSearch={handleSearch}
                 searchPlaceholder="Procurar campanhas..."
               />
             </div>
@@ -144,6 +167,29 @@ export default function HomePage() {
                 ))
               )}
             </div>
+            {!loading && pagination && pagination.totalPages > 1 && (
+              <div className={Styles.pagination}>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  disabled={pagination.first}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                >
+                  Anterior
+                </Button>
+                <span className={Styles.paginationInfo}>
+                  {currentPage + 1} de {pagination.totalPages}
+                </span>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  disabled={pagination.last}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                >
+                  Próximo
+                </Button>
+              </div>
+            )}
           </section>
         </main>
       </div>
